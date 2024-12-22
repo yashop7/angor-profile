@@ -14,7 +14,7 @@ import { ThemeService } from './services/theme.service';
           <img src="images/logo-text.svg" alt="Angor Profile Logo" class="logo">
         </a>
         <div class="nav-links">
-          <a href="https://hub.angor.io">Explore</a>
+          <a href="https://hub.angor.io/explore">Explore</a>
           <a routerLink="/profile">Profile</a>
           <button (click)="toggleTheme()" class="theme-toggle">
             {{ (themeService.theme$ | async) === 'light' ? '☀️' : '🌙' }}

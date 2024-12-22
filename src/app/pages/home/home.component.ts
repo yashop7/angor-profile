@@ -16,7 +16,7 @@ import { BreadcrumbComponent } from '../../components/breadcrumb.component';
             Angor Profile is a Nostr profile editor, built specifically to manage the 
             profile information for Angor projects.
           </p>
-          <a href="https://hub.angor.io" class="cta-button">
+          <a href="https://hub.angor.io/explore" class="cta-button">
             Explore All Projects
             <span class="arrow">→</span>
           </a>
