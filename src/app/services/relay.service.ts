@@ -1,7 +1,8 @@
 import { Injectable, signal, effect } from '@angular/core';
 import { SimplePool, Filter, Event, Relay } from 'nostr-tools';
-import NDK, { NDKEvent, NDKUserProfile } from '@nostr-dev-kit/ndk';
+import NDK, { NDKEvent, NDKFilter, NDKKind, NDKUserProfile } from '@nostr-dev-kit/ndk';
 import { Subject } from 'rxjs';
+import { NostrProfile } from '../pages/profile/profile.component';
 
 export interface ProfileUpdate {
   pubkey: string;
@@ -33,6 +34,16 @@ interface ProjectEvent extends Event {
 
 export interface ProjectMembers {
   pubkeys: string[];
+}
+
+export interface FaqItem {
+  question: string;
+  answer: string;
+}
+
+export interface ProjectContent {
+  content: string;
+  created_at?: number;
 }
 
 @Injectable({
@@ -115,7 +126,7 @@ export class RelayService {
 
       for (const batch of batches) {
         const filter = {
-          kinds: [30078],
+          kinds: [NDKKind.AppSpecificData],
           ids: ids,
         };
 
@@ -208,13 +219,16 @@ export class RelayService {
     // });
   }
 
-  public async loadMembers(): Promise<ProjectMembers | null> {
+  public async loadMembers(
+    pubkey: string | null
+  ): Promise<ProjectMembers | null> {
     try {
       const ndk = await this.ensureConnected();
       const filter = {
-        kinds: [30078],
+        kinds: [NDKKind.AppSpecificData],
         '#d': ['angor:members'],
-        limit: 1
+        authors: pubkey ? [pubkey] : [],
+        limit: 1,
       };
 
       const event = await ndk.fetchEvent(filter);
@@ -228,20 +242,126 @@ export class RelayService {
     }
   }
 
-  public async saveMembers(members: ProjectMembers) {
+  public async saveMembers(pubkey: string, members: ProjectMembers) {
     try {
       const ndk = await this.ensureConnected();
       const event = new NDKEvent(ndk);
-      
-      event.kind = 30078;
+
+      event.kind = NDKKind.AppSpecificData;
       event.content = JSON.stringify(members);
-      event.tags = [
-        ['d', 'angor:members']
-      ];
+      event.tags = [['d', 'angor:members']];
 
       await event.publish();
     } catch (error) {
       console.error('Error saving members:', error);
+      throw error;
+    }
+  }
+
+  async loadProfileMetadata(
+    pubkey: string | null
+  ): Promise<NostrProfile | null> {
+    try {
+      const ndk = await this.ensureConnected();
+      const filter: NDKFilter = {
+        kinds: [0],
+        authors: [pubkey!],
+        limit: 1,
+      };
+
+      const event = await ndk.fetchEvent(filter);
+      if (event) {
+        return JSON.parse(event.content);
+      }
+      return null;
+    } catch (error) {
+      console.error('Error loading profile metadata:', error);
+      return null;
+    }
+  }
+
+  async loadProjectContent(pubkey: string): Promise<any | null> {
+    try {
+      const ndk = await this.ensureConnected();
+      const filter = {
+        kinds: [NDKKind.AppSpecificData],
+        authors: [pubkey],
+        '#d': ['angor:project'],
+        limit: 1,
+      };
+
+      const event = await ndk.fetchEvent(filter);
+      if (event) {
+        return {
+          content: event.content,
+          created_at: event.created_at,
+        };
+      }
+      return null;
+    } catch (error) {
+      console.error('Error loading project content:', error);
+      return null;
+    }
+  }
+
+  async loadFaqContent(pubkey: string): Promise<FaqItem[] | null> {
+    try {
+      const ndk = await this.ensureConnected();
+      const filter = {
+        kinds: [NDKKind.AppSpecificData],
+        authors: [pubkey],
+        '#d': ['angor:faq'],
+        limit: 1,
+      };
+
+      const event = await ndk.fetchEvent(filter);
+      if (event) {
+        return JSON.parse(event.content);
+      }
+      return null;
+    } catch (error) {
+      console.error('Error loading FAQ content:', error);
+      return null;
+    }
+  }
+
+  async saveProfileMetadata(pubkey: string, profile: NostrProfile) {
+    try {
+      const ndk = await this.ensureConnected();
+      const event = new NDKEvent(ndk);
+      event.kind = 0;
+      event.content = JSON.stringify(profile);
+      await event.publish();
+    } catch (error) {
+      console.error('Error saving profile metadata:', error);
+      throw error;
+    }
+  }
+
+  async saveProjectContent(pubkey: string, content: ProjectContent) {
+    try {
+      const ndk = await this.ensureConnected();
+      const event = new NDKEvent(ndk);
+      event.kind = NDKKind.AppSpecificData;
+      event.content = content.content;
+      event.tags = [['d', 'angor:project']];
+      await event.publish();
+    } catch (error) {
+      console.error('Error saving project content:', error);
+      throw error;
+    }
+  }
+
+  async saveFaqContent(pubkey: string, faq: FaqItem[]) {
+    try {
+      const ndk = await this.ensureConnected();
+      const event = new NDKEvent(ndk);
+      event.kind = NDKKind.AppSpecificData;
+      event.content = JSON.stringify(faq);
+      event.tags = [['d', 'angor:faq']];
+      await event.publish();
+    } catch (error) {
+      console.error('Error saving FAQ content:', error);
       throw error;
     }
   }

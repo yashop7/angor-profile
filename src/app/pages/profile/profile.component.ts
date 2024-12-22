@@ -1,10 +1,11 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { BreadcrumbComponent } from '../../components/breadcrumb.component';
 import { RelayService } from '../../services/relay.service';
 
-interface NostrProfile {
+export interface NostrProfile {
   name: string;
   displayName: string;
   about: string;
@@ -171,7 +172,7 @@ interface ProjectMembers {
           <p class="helper-text">Add Nostr public keys of team members who can manage this project.</p>
 
           <div class="members-container">
-            <div *ngFor="let pubkey of members.pubkeys; let i = index" class="member-item">
+            <div *ngFor="let pubkey of members.pubkeys; let i = index; trackBy: trackByIndex" class="member-item">
               <input 
                 type="text" 
                 [(ngModel)]="members.pubkeys[i]" 
@@ -472,8 +473,12 @@ interface ProjectMembers {
     }
   `]
 })
-export class ProfileComponent {
+export class ProfileComponent implements OnInit {
+  private route = inject(ActivatedRoute);
   private relayService = inject(RelayService);
+  
+  pubkey: string | null = null;
+  loading = true;
 
   tabs = [
     { id: 'profile', label: 'Profile' },
@@ -509,9 +514,62 @@ export class ProfileComponent {
   showPreview = false;
 
   constructor() {
-    // Initialize with an empty FAQ item
+    // Initialize with empty states
     this.addFaqItem();
-    this.loadMembers();
+  }
+
+  trackByIndex(index: number, item: any): number {
+    return index;
+  }
+
+  ngOnInit() {
+    this.route.paramMap.subscribe(params => {
+      const pubkey = params.get('pubkey');
+      if (pubkey) {
+        this.pubkey = pubkey;
+        this.loadProfileData(pubkey);
+      }
+    });
+  }
+
+  async loadProfileData(pubkey: string) {
+    this.loading = true;
+    try {
+      // Load profile metadata (kind 0)
+      const profileData = await this.relayService.loadProfileMetadata(pubkey);
+      if (profileData) {
+        this.profile = profileData;
+      }
+
+      // Load project content (kind 30078 with d=angor:project)
+      const projectData = await this.relayService.loadProjectContent(pubkey);
+      if (projectData) {
+        this.projectContent = {
+          content: projectData.content,
+          lastUpdated: projectData.created_at
+        };
+      }
+
+      // Load FAQ (kind 30078 with d=angor:faq)
+      const faqData = await this.relayService.loadFaqContent(pubkey);
+      if (faqData) {
+        this.faqItems = faqData.map(item => ({
+          ...item,
+          id: crypto.randomUUID()
+        }));
+      }
+
+      // Load members (kind 30078 with d=angor:members)
+      const membersData = await this.relayService.loadMembers(pubkey);
+      if (membersData) {
+        this.members = membersData;
+      }
+
+    } catch (error) {
+      console.error('Error loading profile data:', error);
+    } finally {
+      this.loading = false;
+    }
   }
 
   setActiveTab(tabId: string) {
@@ -567,7 +625,7 @@ export class ProfileComponent {
   }
 
   async loadMembers() {
-    const members = await this.relayService.loadMembers();
+    const members = await this.relayService.loadMembers(this.pubkey);
     if (members) {
       this.members = members;
     } else {
@@ -584,25 +642,19 @@ export class ProfileComponent {
   }
 
   saveProfile() {
-    // Update existing saveProfile method
-    console.log('Saving profile:', {
-      profile: this.profile,
-      projectContent: this.projectContent,
-      faq: this.faqItems
-    });
+    if (!this.pubkey) return;
 
-    // TODO: Create NIP-78 event with FAQ content
-    const faqEvent = {
-      kind: 78,
-      content: JSON.stringify(this.faqItems),
-      tags: [
-        ['c', 'faq'],
-        ['p', 'project-pubkey-here'] // Add actual project pubkey
-      ]
-    };
+    // Save profile metadata
+    this.relayService.saveProfileMetadata(this.pubkey, this.profile);
+
+    // Save project content
+    this.relayService.saveProjectContent(this.pubkey, this.projectContent);
+
+    // Save FAQ content
+    this.relayService.saveFaqContent(this.pubkey, this.faqItems);
 
     // Save members
-    this.relayService.saveMembers(this.members);
+    this.relayService.saveMembers(this.pubkey, this.members);
   }
 
   resetChanges() {

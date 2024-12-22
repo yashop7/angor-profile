@@ -1,11 +1,10 @@
 import { Component } from '@angular/core';
-import { RouterLink } from '@angular/router';
 import { BreadcrumbComponent } from '../../components/breadcrumb.component';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [RouterLink, BreadcrumbComponent],
+  imports: [BreadcrumbComponent],
   template: `
     <section class="hero">
     <app-breadcrumb [items]="[{ label: 'Home', url: '' }]"></app-breadcrumb>
@@ -53,7 +52,7 @@ import { BreadcrumbComponent } from '../../components/breadcrumb.component';
     </div>
   `,
   styles: [`
-    // ...existing code...
+   
   `]
 })
 export class HomeComponent {

@@ -8,7 +8,7 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/home/home.component').then(m => m.HomeComponent)
   },
   {
-    path: 'profile',
+    path: 'profile/:pubkey',
     loadComponent: () => import('./pages/profile/profile.component').then(m => m.ProfileComponent)
   },
   { path: 'explore', component: ExploreComponent },
