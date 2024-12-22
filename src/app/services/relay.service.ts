@@ -366,7 +366,12 @@ export class RelayService {
 
       const event = await ndk.fetchEvent(filter);
       if (event) {
-        return JSON.parse(event.content);
+        // Add IDs to loaded FAQ items
+        const faqItems = JSON.parse(event.content);
+        return faqItems.map((item: any) => ({
+          ...item,
+          id: crypto.randomUUID()
+        }));
       }
       return null;
     } catch (error) {
@@ -428,7 +433,9 @@ export class RelayService {
       const ndk = await this.ensureConnected();
       const event = new NDKEvent(ndk);
       event.kind = NDKKind.AppSpecificData;
-      event.content = JSON.stringify(faq);
+      // Only save question and answer, strip the id
+      const faqContent = faq.map(({ question, answer }) => ({ question, answer }));
+      event.content = JSON.stringify(faqContent);
       event.tags = [['d', 'angor:faq']];
       await event.publish();
     } catch (error) {
@@ -564,7 +571,10 @@ export class RelayService {
     }
 
     if (data.faq) {
-      const faqContent = data.faq.map(({ id, ...item }: FaqItem) => item); // Remove internal id properties
+      const faqContent = data.faq.map(({ question, answer }: FaqItem) => ({ 
+        question, 
+        answer 
+      }));
       
       const ndkEvent = new NDKEvent();
       ndkEvent.kind = NDKKind.AppSpecificData;
