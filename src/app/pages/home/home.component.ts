@@ -50,10 +50,7 @@ import { BreadcrumbComponent } from '../../components/breadcrumb.component';
         <p>Monitor your investments and stay updated on project developments.</p>
       </div>
     </div>
-  `,
-  styles: [`
-   
-  `]
+  `
 })
 export class HomeComponent {
 }

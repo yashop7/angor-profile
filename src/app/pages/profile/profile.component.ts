@@ -29,12 +29,6 @@ interface ProjectContent {
   lastUpdated?: number;
 }
 
-// interface FaqItem {
-//   id: string;
-//   question: string;
-//   answer: string;
-// }
-
 interface ProjectMembers {
   pubkeys: string[];
 }
@@ -683,7 +677,6 @@ export class ProfileComponent implements OnInit {
 
         this.npub = this.user.npub;
         this.pubkey = this.user.pubkey;
-        // this.pubkey = pubkey;
 
         this.loadProfileData(this.pubkey);
       }
@@ -693,7 +686,6 @@ export class ProfileComponent implements OnInit {
   async loadProfileData(pubkey: string) {
     this.loading = true;
     try {
-      // Load profile metadata (kind 0)
       const profileData = await this.relayService.loadProfileMetadata(pubkey);
       if (profileData) {
         console.log('Loaded profile:', profileData);
@@ -709,7 +701,6 @@ export class ProfileComponent implements OnInit {
         };
       }
 
-      // Load project content
       const projectData = await this.relayService.loadProjectContent(pubkey);
       if (projectData) {
         this.projectContent = {
@@ -718,20 +709,11 @@ export class ProfileComponent implements OnInit {
         };
       }
 
-      // Load FAQ
       const faqData = await this.relayService.loadFaqContent(pubkey);
       if (faqData && Array.isArray(faqData)) {
         this.faqItems = faqData;
       }
-      // if (faqData && Array.isArray(faqData)) {
-      //   this.faqItems = faqData.map((item) => ({
-      //     id: item.id || crypto.randomUUID(), // Only generate new ID if one doesn't exist
-      //     question: item.question,
-      //     answer: item.answer
-      //   }));
-      // }
 
-      // Load members
       const membersData = await this.relayService.loadMembers(pubkey);
       if (membersData) {
         this.members = {
@@ -765,7 +747,6 @@ export class ProfileComponent implements OnInit {
 
     this.projectContent.content = textarea.value;
 
-    // Restore cursor position
     textarea.focus();
     textarea.setSelectionRange(start + prefix.length, end + prefix.length);
   }
@@ -784,7 +765,7 @@ export class ProfileComponent implements OnInit {
 
   addFaqItem() {
     this.faqItems.push({
-      id: crypto.randomUUID(), // Generate new ID only for new items
+      id: crypto.randomUUID(),
       question: '',
       answer: '',
     });
@@ -814,7 +795,6 @@ export class ProfileComponent implements OnInit {
   saveProfile() {
     if (!this.pubkey) return;
 
-    // Prepare the data to be signed
     this.dataToSign = {
       profile: this.profile,
       project: this.projectContent,
@@ -822,7 +802,6 @@ export class ProfileComponent implements OnInit {
       members: this.members,
     };
 
-    // Show signing dialog
     this.showSigningDialog = true;
   }
 
@@ -836,89 +815,30 @@ export class ProfileComponent implements OnInit {
     try {
       await this.relayService.ensureConnected();
 
-      console.log(this.relayService.ndk?.devWriteRelaySet);
-      console.log(this.relayService.ndk?.autoConnectUserRelays);
-      console.log(this.relayService.ndk);
-      console.log(this.relayService);
-
       const nip07signer = new NDKNip07Signer();
-
       this.relayService.ndk!.signer = nip07signer;
-
-      // const ndk = new NDK({ signer: nip07signer });
-
-      // const user = this.relayService.ndk!.getUser({
-      //   npub: this.pubkey!,
-      //   relayUrls: this.relayService.ndk?.explicitRelayUrls,
-      // });
-
-      // nip07signer.user().then(async (user) => {
-      //   if (!!user.npub) {
-      //     console.log(
-      //       'Permission granted to read their public key:',
-      //       user.npub
-      //     );
-      //   }
-      // });
-
-      // const ndkEvent = new NDKEvent(this.relayService.ndk!);
-      // ndkEvent.kind = 1;
-      // ndkEvent.content = 'Hello, world!';
-
-      // const relays = await calculateRelaySetFromEvent(
-      //   this.relayService.ndk!,
-      //   ndkEvent
-      // );
-
-      // debugger;
-
-      // const published = await ndkEvent.publish(); // This will trigger the extension to ask the user to confirm signing.
-
-      // console.log('Published: ', published);
 
       const events = this.relayService.createEventsFromData(
         this.pubkey!,
         this.dataToSign
       );
 
-      // this.relayService.saveProfileWithKey;
-
       if (result.key === 'extension') {
         for (const event of events) {
           const ndkEvent = new NDKEvent(this.relayService.ndk!, event);
-          // ndkEvent.kind = 1;
-          // ndkEvent.content = event.content;
-
-          const published = await ndkEvent.publish(); // This will trigger the extension to ask the user to confirm signing.
+          const published = await ndkEvent.publish();
           console.log('PUBLISHED: ', published);
         }
-
-        // Sign using browser extension
-        // await this.relayService.saveProfileWithExtension(
-        //   this.pubkey!,
-        //   this.dataToSign
-        // );
       } else if (result.key) {
-        // Sign using provided private key
         this.relayService.ndk!.signer = new NDKPrivateKeySigner(result.key);
 
         for (const event of events) {
           const ndkEvent = new NDKEvent(this.relayService.ndk!, event);
-          // ndkEvent.kind = 1;
-          // ndkEvent.content = event.content;
-
-          const published = await ndkEvent.publish(); // This will trigger the extension to ask the user to confirm signing.
+          const published = await ndkEvent.publish();
           console.log('PUBLISHED: ', published);
         }
-
-        // await this.relayService.saveProfileWithKey(
-        //   this.pubkey!,
-        //   this.dataToSign,
-        //   result.key
-        // );
       }
 
-      // Show success message
       alert('Profile updated successfully!');
     } catch (error) {
       console.error('Error saving profile:', error);
