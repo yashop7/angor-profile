@@ -413,6 +413,8 @@ interface MediaItem {
       [dataToSign]="dataToSign"
       (sign)="handleSigning($event)"
     ></app-signing-dialog>
+
+
   `,
   styles: [
     `
@@ -934,9 +936,14 @@ export class ProfileComponent implements OnInit {
           identityTags: []
         };
 
+        debugger;
+
         // Extract identity tags from the event tags
         const identityTags: IdentityLink[] = [];
         const event = await this.relayService.getProfileEvent(pubkey);
+
+        debugger;
+
         if (event && event.tags) {
           event.tags.forEach(tag => {
             if (tag[0] === 'i' && tag.length >= 3) {
@@ -949,6 +956,9 @@ export class ProfileComponent implements OnInit {
             }
           });
         }
+
+        debugger;
+
         this.profile.identityTags = identityTags;
       }
 
@@ -1090,6 +1100,8 @@ export class ProfileComponent implements OnInit {
       media: this.mediaItems
     };
 
+    debugger;
+
     this.showSigningDialog = true;
   }
 
@@ -1105,6 +1117,8 @@ export class ProfileComponent implements OnInit {
 
       const nip07signer = new NDKNip07Signer();
       this.relayService.ndk!.signer = nip07signer;
+
+      debugger;
 
       const events = this.relayService.createEventsFromData(
         this.pubkey!,

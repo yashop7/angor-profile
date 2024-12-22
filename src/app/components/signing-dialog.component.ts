@@ -378,6 +378,12 @@ export class SigningDialogComponent {
     // Check for Nostr extension
     this.hasNostrExtension = window.hasOwnProperty('nostr');
     this.hasNostrExtension = true;
+
+    console.log('DATA TO SIGN:', JSON.stringify(this.dataToSign));
+  }
+
+  ngAfterViewInit() {
+    console.log('DATA TO SIGN:', JSON.stringify(this.dataToSign));
   }
 
   signWithExtension() {

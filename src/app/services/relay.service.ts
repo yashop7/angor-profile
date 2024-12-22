@@ -296,6 +296,7 @@ export class RelayService {
       }
 
       if (latestEvent) {
+        debugger;
         try {
           const profileData = JSON.parse(latestEvent.content);
           const profile = {
@@ -532,6 +533,8 @@ export class RelayService {
     if (data.profile) {
       const ndkEvent = new NDKEvent();
       ndkEvent.kind = NDKKind.Metadata;
+
+      debugger;
       
       // Create metadata object without identityTags
       const metadata = {
@@ -548,10 +551,12 @@ export class RelayService {
       ndkEvent.content = JSON.stringify(metadata);
       ndkEvent.tags = []; // Initialize tags array
 
+      debugger;
+
       // Add identity tags if present
       if (data.profile.identityTags) {
         data.profile.identityTags.forEach((link: any) => {
-          if (link.platform && link.identity && link.proof) {
+          if (link.platform && link.identity) {
             ndkEvent.tags.push(['i', `${link.platform}:${link.identity}`, link.proof]);
           }
         });
