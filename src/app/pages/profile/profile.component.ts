@@ -12,6 +12,7 @@ import NDK, {
   NDKPrivateKeySigner,
   NDKUser,
 } from '@nostr-dev-kit/ndk';
+import { CdkDragDrop, DragDropModule, moveItemInArray } from '@angular/cdk/drag-drop';
 
 export interface NostrProfile {
   name: string;
@@ -53,6 +54,7 @@ interface MediaItem {
     BreadcrumbComponent,
     FormsModule,
     SigningDialogComponent,
+    DragDropModule
   ],
   template: `
     <section class="hero">
@@ -1073,12 +1075,8 @@ export class ProfileComponent implements OnInit {
     this.mediaItems.splice(index, 1);
   }
 
-  dropMedia(event: any) {
-    const previousIndex = event.previousIndex;
-    const currentIndex = event.currentIndex;
-    const item = this.mediaItems[previousIndex];
-    this.mediaItems.splice(previousIndex, 1);
-    this.mediaItems.splice(currentIndex, 0, item);
+  dropMedia(event: CdkDragDrop<MediaItem[]>) {
+    moveItemInArray(this.mediaItems, event.previousIndex, event.currentIndex);
   }
 
   saveProfile() {
