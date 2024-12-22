@@ -1,15 +1,17 @@
 import { Routes } from '@angular/router';
-import { ExploreComponent } from './pages/explore/explore.component';
 
 export const routes: Routes = [
   {
     path: '',
-    loadComponent: () => import('./pages/home/home.component').then(m => m.HomeComponent)
+    loadComponent: () =>
+      import('./pages/home/home.component').then((m) => m.HomeComponent),
   },
   {
     path: 'profile/:pubkey',
-    loadComponent: () => import('./pages/profile/profile.component').then(m => m.ProfileComponent)
+    loadComponent: () =>
+      import('./pages/profile/profile.component').then(
+        (m) => m.ProfileComponent
+      ),
   },
-  { path: 'explore', component: ExploreComponent },
-  { path: '**', redirectTo: '' }
+  { path: '**', redirectTo: '' },
 ];
