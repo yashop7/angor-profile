@@ -1,7 +1,8 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { BreadcrumbComponent } from '../../components/breadcrumb.component';
+import { RelayService } from '../../services/relay.service';
 
 interface NostrProfile {
   name: string;
@@ -23,6 +24,10 @@ interface FaqItem {
   id: string;
   question: string;
   answer: string;
+}
+
+interface ProjectMembers {
+  pubkeys: string[];
 }
 
 @Component({
@@ -163,8 +168,23 @@ interface FaqItem {
 
         <div *ngSwitchCase="'members'" class="profile-section">
           <h2>Team Members</h2>
-          <p>Add and manage team members.</p>
-          <!-- Members tab content here -->
+          <p class="helper-text">Add Nostr public keys of team members who can manage this project.</p>
+
+          <div class="members-container">
+            <div *ngFor="let pubkey of members.pubkeys; let i = index" class="member-item">
+              <input 
+                type="text" 
+                [(ngModel)]="members.pubkeys[i]" 
+                placeholder="npub..."
+                class="member-input"
+              >
+              <button class="delete-button" (click)="removeMember(i)">×</button>
+            </div>
+
+            <button class="add-member-button" (click)="addMember()">
+              + Add Team Member
+            </button>
+          </div>
         </div>
       </div>
 
@@ -414,9 +434,47 @@ interface FaqItem {
       border-color: var(--accent);
       color: var(--accent);
     }
+
+    .members-container {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      margin-top: 1.5rem;
+    }
+
+    .member-item {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+    }
+
+    .member-input {
+      flex: 1;
+    }
+
+    .add-member-button {
+      background: var(--surface-card);
+      border: 2px dashed var(--border);
+      color: var(--text);
+      padding: 1rem;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: all 0.2s ease;
+      width: 100%;
+      margin-top: 1rem;
+    }
+
+    .add-member-button:hover {
+      background: var(--surface-hover);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
   `]
 })
 export class ProfileComponent {
+  private relayService = inject(RelayService);
+
   tabs = [
     { id: 'profile', label: 'Profile' },
     { id: 'project', label: 'Project' },
@@ -444,11 +502,16 @@ export class ProfileComponent {
 
   faqItems: FaqItem[] = [];
 
+  members: ProjectMembers = {
+    pubkeys: []
+  };
+
   showPreview = false;
 
   constructor() {
     // Initialize with an empty FAQ item
     this.addFaqItem();
+    this.loadMembers();
   }
 
   setActiveTab(tabId: string) {
@@ -503,6 +566,23 @@ export class ProfileComponent {
     this.faqItems = this.faqItems.filter(item => item.id !== id);
   }
 
+  async loadMembers() {
+    const members = await this.relayService.loadMembers();
+    if (members) {
+      this.members = members;
+    } else {
+      this.members = { pubkeys: [] };
+    }
+  }
+
+  addMember() {
+    this.members.pubkeys.push('');
+  }
+
+  removeMember(index: number) {
+    this.members.pubkeys.splice(index, 1);
+  }
+
   saveProfile() {
     // Update existing saveProfile method
     console.log('Saving profile:', {
@@ -520,6 +600,9 @@ export class ProfileComponent {
         ['p', 'project-pubkey-here'] // Add actual project pubkey
       ]
     };
+
+    // Save members
+    this.relayService.saveMembers(this.members);
   }
 
   resetChanges() {
@@ -543,6 +626,7 @@ export class ProfileComponent {
         question: '',
         answer: ''
       }];
+      this.members = { pubkeys: [] };
     }
   }
 

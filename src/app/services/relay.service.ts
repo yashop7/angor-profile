@@ -31,6 +31,10 @@ interface ProjectEvent extends Event {
   metadata?: NDKUserProfile;
 }
 
+export interface ProjectMembers {
+  pubkeys: string[];
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -202,6 +206,44 @@ export class RelayService {
     //   this.loading.set(false);
     //   sub.unsub();
     // });
+  }
+
+  public async loadMembers(): Promise<ProjectMembers | null> {
+    try {
+      const ndk = await this.ensureConnected();
+      const filter = {
+        kinds: [30078],
+        '#d': ['angor:members'],
+        limit: 1
+      };
+
+      const event = await ndk.fetchEvent(filter);
+      if (event) {
+        return JSON.parse(event.content);
+      }
+      return null;
+    } catch (error) {
+      console.error('Error loading members:', error);
+      return null;
+    }
+  }
+
+  public async saveMembers(members: ProjectMembers) {
+    try {
+      const ndk = await this.ensureConnected();
+      const event = new NDKEvent(ndk);
+      
+      event.kind = 30078;
+      event.content = JSON.stringify(members);
+      event.tags = [
+        ['d', 'angor:members']
+      ];
+
+      await event.publish();
+    } catch (error) {
+      console.error('Error saving members:', error);
+      throw error;
+    }
   }
 
   public disconnect() {
