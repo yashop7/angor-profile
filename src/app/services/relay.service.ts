@@ -1,6 +1,12 @@
 import { Injectable, signal, effect } from '@angular/core';
-import { SimplePool, Filter, Event, Relay } from 'nostr-tools';
-import NDK, { NDKEvent, NDKFilter, NDKKind, NDKUserProfile } from '@nostr-dev-kit/ndk';
+import { SimplePool, Filter, Event, Relay, getEventHash } from 'nostr-tools';
+import NDK, {
+  NDKEvent,
+  NDKFilter,
+  NDKKind,
+  NDKUserProfile,
+  NDKNip07Signer,
+} from '@nostr-dev-kit/ndk';
 import { Subject } from 'rxjs';
 import { NostrProfile } from '../pages/profile/profile.component';
 
@@ -37,6 +43,7 @@ export interface ProjectMembers {
 }
 
 export interface FaqItem {
+  id?: number;
   question: string;
   answer: string;
 }
@@ -51,12 +58,12 @@ export interface ProjectContent {
 })
 export class RelayService {
   private pool = new SimplePool();
-  private ndk: NDK | null = null;
+  public ndk: NDK | null = null;
   private isConnected = false;
   public relayUrls = [
     'wss://relay.primal.net',
     'wss://nos.lol',
-    'wss://relay.angor.io',
+    // 'wss://relay.angor.io',
     'wss://relay2.angor.io',
   ];
 
@@ -362,6 +369,165 @@ export class RelayService {
       await event.publish();
     } catch (error) {
       console.error('Error saving FAQ content:', error);
+      throw error;
+    }
+  }
+
+  async saveProfileWithExtension(pubkey: string, data: any) {
+    if (!window.nostr) {
+      throw new Error('Nostr extension not found');
+    }
+
+    try {
+      // Create and sign events using the extension
+      const profileEvent = await window.nostr.signEvent({
+        kind: 0,
+        content: JSON.stringify(data.profile),
+        created_at: Math.floor(Date.now() / 1000),
+        tags: [],
+        pubkey: pubkey,
+      });
+      const projectEvent = await window.nostr.signEvent({
+        kind: 30078,
+        content: JSON.stringify(data.project),
+        created_at: Math.floor(Date.now() / 1000),
+        tags: [['d', 'angor:project']],
+        pubkey: pubkey,
+      });
+
+      // ... similar for FAQ and members events
+
+      // Publish events
+      await this.publishEvent(profileEvent);
+      await this.publishEvent(projectEvent);
+      // ... publish other events
+    } catch (error) {
+      console.error('Error signing with extension:', error);
+      throw error;
+    }
+  }
+
+  async saveProfileWithKey(pubkey: string, data: any, privateKey: string) {
+    try {
+      debugger;
+      // Sign and publish events using the private key
+      // Note: You'll need to implement the actual signing logic using a Nostr library
+      // This is just a placeholder
+      const events = this.createEventsFromData(pubkey, data);
+      const signedEvents = events.map((event) =>
+        this.signEvent(event, privateKey)
+      );
+
+      // Publish all signed events
+      await Promise.all(signedEvents.map((event) => this.publishEvent(event)));
+    } catch (error) {
+      console.error('Error signing with key:', error);
+      throw error;
+    }
+  }
+
+  createEventsFromData(pubkey: string, data: any) {
+    const now = Math.floor(Date.now() / 1000);
+    const events = [];
+
+    // Profile metadata event (kind 0)
+    if (data.profile) {
+      const ndkEvent = new NDKEvent();
+      ndkEvent.kind = NDKKind.Metadata;
+      ndkEvent.content = JSON.stringify(data.profile);
+      events.push(ndkEvent);
+
+      // events.push({
+      //   kind: 0,
+      //   created_at: now,
+      //   content: JSON.stringify(data.profile),
+      //   tags: [],
+      //   pubkey
+      // });
+    }
+
+    // Project content event (kind 30078)
+    if (data.project) {
+
+      const ndkEvent = new NDKEvent();
+      ndkEvent.kind = NDKKind.AppSpecificData;
+      ndkEvent.content = data.project.content;
+      ndkEvent.tags = [['d', 'angor:project']],
+      events.push(ndkEvent);
+
+      // events.push({
+      //   kind: 30078,
+      //   created_at: now,
+      //   content: data.project.content,
+      //   tags: [['d', 'angor:project']],
+      //   pubkey,
+      // });
+    }
+
+    // FAQ content event (kind 30078)
+    if (data.faq) {
+      const faqContent = data.faq.map(({ id, ...item }: FaqItem) => item); // Remove internal id properties
+      
+      const ndkEvent = new NDKEvent();
+      ndkEvent.kind = NDKKind.AppSpecificData;
+      ndkEvent.content = JSON.stringify(faqContent);
+      ndkEvent.tags = [['d', 'angor:faq']],
+      events.push(ndkEvent);
+      
+      // events.push({
+      //   kind: 30078,
+      //   created_at: now,
+      //   content: JSON.stringify(faqContent),
+      //   tags: [['d', 'angor:faq']],
+      //   pubkey,
+      // });
+    }
+
+    // Members list event (kind 30078)
+    if (data.members) {
+
+
+      const ndkEvent = new NDKEvent();
+      ndkEvent.kind = NDKKind.AppSpecificData;
+      ndkEvent.content = JSON.stringify(data.members);
+      ndkEvent.tags = [['d', 'angor:members']],
+      events.push(ndkEvent);
+
+      // events.push({
+      //   kind: 30078,
+      //   created_at: now,
+      //   content: JSON.stringify(data.members),
+      //   tags: [['d', 'angor:members']],
+      //   pubkey,
+      // });
+    }
+
+    return events;
+  }
+
+  private signEvent(event: any, privateKey: string) {
+    const eventData = {
+      ...event,
+      id: '',
+      sig: '',
+    };
+
+    // Generate event ID
+    eventData.id = getEventHash(eventData);
+
+    // Sign the event
+    // eventData.sig = getSignature(eventData, privateKey);
+
+    return eventData;
+  }
+
+  private async publishEvent(event: any) {
+    try {
+      const ndk = await this.ensureConnected();
+      const ndkEvent = new NDKEvent(ndk, event);
+      await ndkEvent.publish();
+    } catch (error) {
+      console.error('Error publishing event:', error);
       throw error;
     }
   }
