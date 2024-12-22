@@ -3,7 +3,7 @@ import { ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { BreadcrumbComponent } from '../../components/breadcrumb.component';
-import { RelayService } from '../../services/relay.service';
+import { FaqItem, RelayService } from '../../services/relay.service';
 import { SigningDialogComponent } from '../../components/signing-dialog.component';
 import NDK, {
   calculateRelaySetFromEvent,
@@ -29,11 +29,11 @@ interface ProjectContent {
   lastUpdated?: number;
 }
 
-interface FaqItem {
-  id: string;
-  question: string;
-  answer: string;
-}
+// interface FaqItem {
+//   id: string;
+//   question: string;
+//   answer: string;
+// }
 
 interface ProjectMembers {
   pubkeys: string[];
@@ -674,7 +674,7 @@ export class ProfileComponent implements OnInit {
             npub: pubkey,
             relayUrls: this.relayService.relayUrls,
           });
-         } else {
+        } else {
           this.user = new NDKUser({
             pubkey: pubkey,
             relayUrls: this.relayService.relayUrls,
@@ -721,11 +721,15 @@ export class ProfileComponent implements OnInit {
       // Load FAQ
       const faqData = await this.relayService.loadFaqContent(pubkey);
       if (faqData && Array.isArray(faqData)) {
-        this.faqItems = faqData.map((item) => ({
-          ...item,
-          id: crypto.randomUUID(),
-        }));
+        this.faqItems = faqData;
       }
+      // if (faqData && Array.isArray(faqData)) {
+      //   this.faqItems = faqData.map((item) => ({
+      //     id: item.id || crypto.randomUUID(), // Only generate new ID if one doesn't exist
+      //     question: item.question,
+      //     answer: item.answer
+      //   }));
+      // }
 
       // Load members
       const membersData = await this.relayService.loadMembers(pubkey);
@@ -780,7 +784,7 @@ export class ProfileComponent implements OnInit {
 
   addFaqItem() {
     this.faqItems.push({
-      id: crypto.randomUUID(),
+      id: crypto.randomUUID(), // Generate new ID only for new items
       question: '',
       answer: '',
     });
