@@ -53,6 +53,11 @@ export interface ProjectContent {
   created_at?: number;
 }
 
+export interface MediaItem {
+  url: string;
+  type: 'image' | 'video';
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -370,6 +375,27 @@ export class RelayService {
     }
   }
 
+  public async loadMediaContent(pubkey: string): Promise<MediaItem[] | null> {
+    try {
+      const ndk = await this.ensureConnected();
+      const filter = {
+        kinds: [NDKKind.AppSpecificData],
+        authors: [pubkey],
+        '#d': ['angor:media'],
+        limit: 1,
+      };
+
+      const event = await ndk.fetchEvent(filter);
+      if (event) {
+        return JSON.parse(event.content);
+      }
+      return null;
+    } catch (error) {
+      console.error('Error loading media content:', error);
+      return null;
+    }
+  }
+
   async saveProfileMetadata(pubkey: string, profile: NostrProfile) {
     try {
       const ndk = await this.ensureConnected();
@@ -407,6 +433,20 @@ export class RelayService {
       await event.publish();
     } catch (error) {
       console.error('Error saving FAQ content:', error);
+      throw error;
+    }
+  }
+
+  async saveMediaContent(pubkey: string, media: MediaItem[]) {
+    try {
+      const ndk = await this.ensureConnected();
+      const event = new NDKEvent(ndk);
+      event.kind = NDKKind.AppSpecificData;
+      event.content = JSON.stringify(media);
+      event.tags = [['d', 'angor:media']];
+      await event.publish();
+    } catch (error) {
+      console.error('Error saving media content:', error);
       throw error;
     }
   }
@@ -539,6 +579,14 @@ export class RelayService {
       ndkEvent.tags = [['d', 'angor:members']],
       events.push(ndkEvent);
 
+    }
+
+    if (data.media) {
+      const ndkEvent = new NDKEvent();
+      ndkEvent.kind = NDKKind.AppSpecificData;
+      ndkEvent.content = JSON.stringify(data.media);
+      ndkEvent.tags = [['d', 'angor:media']],
+      events.push(ndkEvent);
     }
 
     return events;

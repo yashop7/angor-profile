@@ -1,6 +1,7 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { MediaItem } from '../services/relay.service';
 
 @Component({
   selector: 'app-signing-dialog',
@@ -44,6 +45,19 @@ import { FormsModule } from '@angular/forms';
                 <h3>Team Members:</h3>
                 <pre>{{ dataToSign?.members | json }}</pre>
               </div>
+
+              <div *ngSwitchCase="'media'">
+                <h3>Media Items:</h3>
+                <div class="media-list">
+                  <div *ngFor="let item of dataToSign?.media" class="media-item">
+                    <div class="media-preview">
+                      <img *ngIf="item.type === 'image'" [src]="item.url" alt="Preview">
+                      <video *ngIf="item.type === 'video'" [src]="item.url" controls></video>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
             </ng-container>
           </div>
         </div>
@@ -272,6 +286,72 @@ import { FormsModule } from '@angular/forms';
       font-size: 0.9rem;
       color: var(--text);
     }
+
+    .media-editor {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .media-input {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .media-type-select {
+      min-width: 100px;
+      padding: 0.75rem;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      background: var(--surface-ground);
+      color: var(--text);
+    }
+
+    .media-list {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .media-item {
+      display: flex;
+      gap: 1rem;
+      padding: 0.5rem;
+      background: var(--surface-card);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+    }
+
+    .media-preview {
+      flex: 1;
+      max-width: 200px;
+      overflow: hidden;
+    }
+
+    .media-preview img,
+    .media-preview video {
+      width: 100%;
+      height: auto;
+      object-fit: cover;
+    }
+
+    .media-controls {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .move-button,
+    .delete-button {
+      padding: 0.25rem 0.5rem;
+      border: none;
+      background: none;
+      cursor: pointer;
+      color: var(--text-secondary);
+    }
+
+    .delete-button:hover {
+      color: var(--danger);
+    }
   `]
 })
 export class SigningDialogComponent {
@@ -287,8 +367,12 @@ export class SigningDialogComponent {
     { id: 'profile', label: 'Profile' },
     { id: 'project', label: 'Project' },
     { id: 'faq', label: 'FAQ' },
-    { id: 'members', label: 'Members' }
+    { id: 'members', label: 'Members' },
+    { id: 'media', label: 'Media' }
   ];
+
+  newMediaUrl = '';
+  newMediaType: 'image' | 'video' = 'image';
 
   constructor() {
     // Check for Nostr extension

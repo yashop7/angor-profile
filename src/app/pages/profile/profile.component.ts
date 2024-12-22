@@ -40,6 +40,11 @@ interface IdentityLink {
   proof: string;
 }
 
+interface MediaItem {
+  url: string;
+  type: 'image' | 'video';
+}
+
 @Component({
   selector: 'app-profile',
   standalone: true,
@@ -350,6 +355,43 @@ interface IdentityLink {
             <button class="add-link-button" (click)="addIdentityLink()">
               + Add Identity Link
             </button>
+          </div>
+        </div>
+
+        <div *ngSwitchCase="'media'" class="profile-section">
+          <h2>Media Gallery</h2>
+          <p class="helper-text">
+            Add links to images or videos that showcase your project.
+          </p>
+
+          <div class="media-container">
+            <div class="media-input">
+              <input
+                type="text"
+                [(ngModel)]="newMediaUrl"
+                placeholder="Enter media URL (image or video)"
+                class="media-url-input"
+              />
+              <select [(ngModel)]="newMediaType" class="media-type-select">
+                <option value="image">Image</option>
+                <option value="video">Video</option>
+              </select>
+              <button class="primary-button" (click)="addMedia()">Add Media</button>
+            </div>
+
+            <div cdkDropList class="media-grid" (cdkDropListDropped)="dropMedia($event)">
+              <div *ngFor="let item of mediaItems; let i = index" 
+                   class="media-item" cdkDrag>
+                <div class="media-preview">
+                  <img *ngIf="item.type === 'image'" [src]="item.url" alt="Media preview">
+                  <video *ngIf="item.type === 'video'" [src]="item.url" controls></video>
+                </div>
+                <div class="media-controls">
+                  <button class="move-button" cdkDragHandle>⋮⋮</button>
+                  <button class="delete-button" (click)="removeMedia(i)">×</button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -701,6 +743,79 @@ interface IdentityLink {
         border-color: var(--accent);
         color: var(--accent);
       }
+
+      .media-container {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+      }
+
+      .media-input {
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+      }
+
+      .media-url-input {
+        flex: 1;
+      }
+
+      .media-type-select {
+        width: 120px;
+      }
+
+      .media-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 1rem;
+      }
+
+      .media-item {
+        position: relative;
+        background: var(--surface-ground);
+        border: 1px solid var(--border);
+        border-radius: 4px;
+        overflow: hidden;
+      }
+
+      .media-preview {
+        aspect-ratio: 16/9;
+        overflow: hidden;
+      }
+
+      .media-preview img,
+      .media-preview video {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .media-controls {
+        position: absolute;
+        top: 0.5rem;
+        right: 0.5rem;
+        display: flex;
+        gap: 0.5rem;
+        opacity: 0;
+        transition: opacity 0.2s;
+      }
+
+      .media-item:hover .media-controls {
+        opacity: 1;
+      }
+
+      .media-controls button {
+        background: rgba(0, 0, 0, 0.5);
+        color: white;
+        border: none;
+        border-radius: 4px;
+        padding: 0.25rem 0.5rem;
+        cursor: pointer;
+      }
+
+      .media-controls button:hover {
+        background: rgba(0, 0, 0, 0.7);
+      }
     `,
   ],
 })
@@ -717,7 +832,8 @@ export class ProfileComponent implements OnInit {
     { id: 'project', label: 'Project' },
     { id: 'faq', label: 'FAQ' },
     { id: 'members', label: 'Members' },
-    { id: 'links', label: 'Links' }
+    { id: 'links', label: 'Links' },
+    { id: 'media', label: 'Media' }
   ];
 
   activeTab = 'profile';
@@ -744,6 +860,10 @@ export class ProfileComponent implements OnInit {
   members: ProjectMembers = {
     pubkeys: [],
   };
+
+  mediaItems: MediaItem[] = [];
+  newMediaUrl = '';
+  newMediaType: 'image' | 'video' = 'image';
 
   platformSuggestions = [
     'github',
@@ -849,6 +969,11 @@ export class ProfileComponent implements OnInit {
           pubkeys: membersData.pubkeys || [],
         };
       }
+
+      const mediaData = await this.relayService.loadMediaContent(pubkey);
+      if (mediaData) {
+        this.mediaItems = mediaData;
+      }
     } catch (error) {
       console.error('Error loading profile data:', error);
     } finally {
@@ -933,6 +1058,29 @@ export class ProfileComponent implements OnInit {
     this.profile.identityTags.splice(index, 1);
   }
 
+  addMedia() {
+    if (!this.newMediaUrl) return;
+    
+    this.mediaItems.push({
+      url: this.newMediaUrl,
+      type: this.newMediaType
+    });
+
+    this.newMediaUrl = '';
+  }
+
+  removeMedia(index: number) {
+    this.mediaItems.splice(index, 1);
+  }
+
+  dropMedia(event: any) {
+    const previousIndex = event.previousIndex;
+    const currentIndex = event.currentIndex;
+    const item = this.mediaItems[previousIndex];
+    this.mediaItems.splice(previousIndex, 1);
+    this.mediaItems.splice(currentIndex, 0, item);
+  }
+
   saveProfile() {
     if (!this.pubkey) return;
 
@@ -941,6 +1089,7 @@ export class ProfileComponent implements OnInit {
       project: this.projectContent,
       faq: this.faqItems,
       members: this.members,
+      media: this.mediaItems
     };
 
     this.showSigningDialog = true;
