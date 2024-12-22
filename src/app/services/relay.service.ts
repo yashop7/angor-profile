@@ -521,12 +521,13 @@ export class RelayService {
 
   createEventsFromData(pubkey: string, data: any) {
     const events = [];
-    const now = Math.floor(Date.now() / 1000);
 
     if (data.profile) {
       const ndkEvent = new NDKEvent();
       ndkEvent.kind = NDKKind.Metadata;
-      ndkEvent.content = JSON.stringify({
+      
+      // Create metadata object without identityTags
+      const metadata = {
         name: data.profile.name,
         display_name: data.profile.displayName,
         about: data.profile.about,
@@ -535,7 +536,10 @@ export class RelayService {
         nip05: data.profile.nip05,
         lud16: data.profile.lud16,
         website: data.profile.website,
-      });
+      };
+
+      ndkEvent.content = JSON.stringify(metadata);
+      ndkEvent.tags = []; // Initialize tags array
 
       // Add identity tags if present
       if (data.profile.identityTags) {
