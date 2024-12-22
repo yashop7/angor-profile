@@ -12,8 +12,40 @@ import { FormsModule } from '@angular/forms';
         <h2>Sign Profile Updates</h2>
         
         <div class="data-preview">
-          <h3>Data to be signed:</h3>
-          <pre>{{ dataToSign | json }}</pre>
+          <div class="preview-tabs">
+            <button 
+              *ngFor="let tab of dataTabs" 
+              [class.active]="activeTab === tab.id"
+              (click)="activeTab = tab.id"
+              class="tab-button"
+            >
+              {{ tab.label }}
+            </button>
+          </div>
+
+          <div class="preview-content">
+            <ng-container [ngSwitch]="activeTab">
+              <div *ngSwitchCase="'profile'">
+                <h3>Profile Metadata:</h3>
+                <pre>{{ dataToSign?.profile | json }}</pre>
+              </div>
+              
+              <div *ngSwitchCase="'project'">
+                <h3>Project Content:</h3>
+                <pre>{{ dataToSign?.project | json }}</pre>
+              </div>
+              
+              <div *ngSwitchCase="'faq'">
+                <h3>FAQ Items:</h3>
+                <pre>{{ dataToSign?.faq | json }}</pre>
+              </div>
+              
+              <div *ngSwitchCase="'members'">
+                <h3>Team Members:</h3>
+                <pre>{{ dataToSign?.members | json }}</pre>
+              </div>
+            </ng-container>
+          </div>
         </div>
 
         <div class="signing-methods">
@@ -109,6 +141,61 @@ import { FormsModule } from '@angular/forms';
     .key-input {
       width: 100%;
       margin-bottom: 1rem;
+      padding: 0.75rem;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      background: var(--surface-ground);
+      color: var(--text);
+      font-size: 1rem;
+      transition: all 0.2s ease;
+    }
+
+    .key-input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px rgba(8, 108, 129, 0.1);
+    }
+
+    .primary-button, .secondary-button {
+      padding: 0.75rem 1.5rem;
+      border-radius: 4px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      min-width: 120px;
+    }
+
+    .primary-button {
+      background: var(--accent);
+      color: white;
+      border: none;
+    }
+
+    .secondary-button {
+      background: var(--surface-ground);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    .primary-button:hover:not(:disabled),
+    .secondary-button:hover:not(:disabled) {
+      transform: translateY(-1px);
+    }
+
+    .primary-button:hover:not(:disabled) {
+      background: var(--accent-dark);
+    }
+
+    .secondary-button:hover:not(:disabled) {
+      background: var(--surface-hover);
+    }
+
+    .method-section h3 {
+      margin-top: 0;
+      margin-bottom: 1rem;
+      color: var(--text);
+      font-size: 1.1rem;
+      font-weight: 500;
     }
 
     .dialog-actions {
@@ -122,6 +209,69 @@ import { FormsModule } from '@angular/forms';
       opacity: 0.5;
       cursor: not-allowed;
     }
+
+    .preview-tabs {
+      display: flex;
+      gap: 0.5rem;
+      padding: 0.5rem;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 1rem;
+    }
+
+    .tab-button {
+      padding: 0.5rem 1rem;
+      border: none;
+      background: none;
+      color: var(--text);
+      cursor: pointer;
+      opacity: 0.7;
+      transition: all 0.2s ease;
+      position: relative;
+    }
+
+    .tab-button:hover {
+      opacity: 1;
+      background: var(--surface-hover);
+    }
+
+    .tab-button.active {
+      opacity: 1;
+      color: var(--accent);
+    }
+
+    .tab-button.active::after {
+      content: '';
+      position: absolute;
+      bottom: -0.5rem;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: var(--accent);
+    }
+
+    .preview-content {
+      padding: 1rem;
+      background: var(--surface-ground);
+      border-radius: 4px;
+      min-height: 200px;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+
+    .preview-content h3 {
+      margin-top: 0;
+      margin-bottom: 1rem;
+      color: var(--text);
+      font-size: 1rem;
+    }
+
+    .preview-content pre {
+      margin: 0;
+      white-space: pre-wrap;
+      word-break: break-all;
+      font-size: 0.9rem;
+      color: var(--text);
+    }
   `]
 })
 export class SigningDialogComponent {
@@ -131,10 +281,17 @@ export class SigningDialogComponent {
   
   privateKey = '';
   hasNostrExtension = false;
+  activeTab = 'profile';
+
+  dataTabs = [
+    { id: 'profile', label: 'Profile' },
+    { id: 'project', label: 'Project' },
+    { id: 'faq', label: 'FAQ' },
+    { id: 'members', label: 'Members' }
+  ];
 
   constructor() {
     // Check for Nostr extension
-    // TODO: This check does not work!!
     this.hasNostrExtension = window.hasOwnProperty('nostr');
     this.hasNostrExtension = true;
   }
