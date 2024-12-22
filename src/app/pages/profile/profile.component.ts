@@ -328,7 +328,7 @@ interface MediaItem {
           <div class="links-container">
             <div *ngFor="let link of profile.identityTags; let i = index" class="link-item">
               <div class="link-inputs">
-                <select [(ngModel)]="link.platform" class="platform-select">
+                <select [(ngModel)]="link.platform" class="platform-select" autocomplete="off">
                   <option value="">Select Platform</option>
                   <option *ngFor="let platform of platformSuggestions" [value]="platform">
                     {{platform}}
@@ -341,6 +341,7 @@ interface MediaItem {
                   [(ngModel)]="link.identity"
                   placeholder="Username or ID"
                   class="identity-input"
+                  autocomplete="off"
                 />
                 
                 <input
@@ -348,6 +349,7 @@ interface MediaItem {
                   [(ngModel)]="link.proof"
                   placeholder="Proof URL or identifier"
                   class="proof-input"
+                  autocomplete="off"
                 />
               </div>
               
@@ -936,13 +938,9 @@ export class ProfileComponent implements OnInit {
           identityTags: []
         };
 
-        debugger;
-
         // Extract identity tags from the event tags
         const identityTags: IdentityLink[] = [];
         const event = await this.relayService.getProfileEvent(pubkey);
-
-        debugger;
 
         if (event && event.tags) {
           event.tags.forEach(tag => {
@@ -956,8 +954,6 @@ export class ProfileComponent implements OnInit {
             }
           });
         }
-
-        debugger;
 
         this.profile.identityTags = identityTags;
       }
@@ -1100,8 +1096,6 @@ export class ProfileComponent implements OnInit {
       media: this.mediaItems
     };
 
-    debugger;
-
     this.showSigningDialog = true;
   }
 
@@ -1117,8 +1111,6 @@ export class ProfileComponent implements OnInit {
 
       const nip07signer = new NDKNip07Signer();
       this.relayService.ndk!.signer = nip07signer;
-
-      debugger;
 
       const events = this.relayService.createEventsFromData(
         this.pubkey!,
