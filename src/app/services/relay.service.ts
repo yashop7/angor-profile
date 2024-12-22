@@ -73,6 +73,8 @@ export class RelayService {
   public profileUpdates = new Subject<ProfileUpdate>();
   public projectUpdates = new Subject<ProjectUpdate>();
 
+  private originalProfileData: { [key: string]: any } = {};
+
   constructor() {
     this.initializeRelays();
 
@@ -291,7 +293,7 @@ export class RelayService {
       if (latestEvent) {
         try {
           const profileData = JSON.parse(latestEvent.content);
-          return {
+          const profile = {
             name: profileData.name || '',
             displayName: profileData.display_name || profileData.displayName || '',
             about: profileData.about || '',
@@ -301,6 +303,11 @@ export class RelayService {
             lud16: profileData.lud16 || '',
             website: profileData.website || ''
           };
+          
+          // Store original data
+          this.originalProfileData[pubkey!] = this.deepClone(profile);
+          
+          return profile;
         } catch (error) {
           console.error('Error parsing profile data:', error);
         }
@@ -310,6 +317,11 @@ export class RelayService {
       console.error('Error loading profile metadata:', error);
       return null;
     }
+  }
+
+  // Add method to get original data
+  getOriginalProfileData(pubkey: string): NostrProfile | null {
+    return this.originalProfileData[pubkey] || null;
   }
 
   async loadProjectContent(pubkey: string): Promise<any | null> {
@@ -562,5 +574,10 @@ export class RelayService {
       this.isConnected = false;
     }
     this.pool.close(this.relayUrls);
+  }
+
+  // Add this helper method
+   deepClone<T>(obj: T): T {
+    return JSON.parse(JSON.stringify(obj));
   }
 }

@@ -616,8 +616,8 @@ export class ProfileComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private relayService = inject(RelayService);
 
-  pubkey: string | null = null;
-  npub: string | null = null;
+  pubkey!: string;
+  npub!: string;
   loading = true;
 
   tabs = [
@@ -923,33 +923,9 @@ export class ProfileComponent implements OnInit {
   }
 
   resetChanges() {
-    if (
-      confirm(
-        'Are you sure you want to reset all changes? This will revert both profile and project content.'
-      )
-    ) {
-      this.profile = {
-        name: '',
-        displayName: '',
-        about: '',
-        picture: '',
-        banner: '',
-        nip05: '',
-        lud16: '',
-        website: '',
-      };
-      this.projectContent = {
-        content: '',
-        lastUpdated: undefined,
-      };
-      this.faqItems = [
-        {
-          id: crypto.randomUUID(),
-          question: '',
-          answer: '',
-        },
-      ];
-      this.members = { pubkeys: [] };
+    const originalData = this.relayService.getOriginalProfileData(this.pubkey!);
+    if (originalData) {
+      this.profile = this.relayService.deepClone(originalData);
     }
   }
 
