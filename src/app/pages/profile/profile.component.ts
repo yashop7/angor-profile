@@ -668,7 +668,6 @@ export class ProfileComponent implements OnInit {
   ngOnInit() {
     this.route.paramMap.subscribe((params) => {
       const pubkey = params.get('pubkey');
-      debugger;
       if (pubkey) {
         if (pubkey.startsWith('npub')) {
           this.user = new NDKUser({
@@ -682,8 +681,6 @@ export class ProfileComponent implements OnInit {
           });
         }
 
-        debugger; 
-
         this.npub = this.user.npub;
         this.pubkey = this.user.pubkey;
         // this.pubkey = pubkey;
@@ -696,7 +693,6 @@ export class ProfileComponent implements OnInit {
   async loadProfileData(pubkey: string) {
     this.loading = true;
     try {
-      debugger;
       // Load profile metadata (kind 0)
       const profileData = await this.relayService.loadProfileMetadata(pubkey);
       if (profileData) {
@@ -884,7 +880,6 @@ export class ProfileComponent implements OnInit {
       // this.relayService.saveProfileWithKey;
 
       if (result.key === 'extension') {
-        debugger;
         for (const event of events) {
           const ndkEvent = new NDKEvent(this.relayService.ndk!, event);
           // ndkEvent.kind = 1;
@@ -901,8 +896,6 @@ export class ProfileComponent implements OnInit {
         // );
       } else if (result.key) {
         // Sign using provided private key
-        debugger;
-
         this.relayService.ndk!.signer = new NDKPrivateKeySigner(result.key);
 
         for (const event of events) {

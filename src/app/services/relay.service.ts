@@ -269,7 +269,6 @@ export class RelayService {
     pubkey: string | null
   ): Promise<NostrProfile | null> {
     try {
-      debugger;
       const ndk = await this.ensureConnected();
       const filter: NDKFilter = {
         kinds: [0],
@@ -279,8 +278,6 @@ export class RelayService {
 
       // Fetch the most recent profile event
       const events = await ndk.fetchEvents(filter);
-
-      debugger;
 
       let latestEvent: NDKEvent | null = null;
 
@@ -437,7 +434,6 @@ export class RelayService {
 
   async saveProfileWithKey(pubkey: string, data: any, privateKey: string) {
     try {
-      debugger;
       // Sign and publish events using the private key
       // Note: You'll need to implement the actual signing logic using a Nostr library
       // This is just a placeholder
