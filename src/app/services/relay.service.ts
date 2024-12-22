@@ -269,6 +269,7 @@ export class RelayService {
     pubkey: string | null
   ): Promise<NostrProfile | null> {
     try {
+      debugger;
       const ndk = await this.ensureConnected();
       const filter: NDKFilter = {
         kinds: [0],
@@ -276,9 +277,36 @@ export class RelayService {
         limit: 1,
       };
 
-      const event = await ndk.fetchEvent(filter);
-      if (event) {
-        return JSON.parse(event.content);
+      // Fetch the most recent profile event
+      const events = await ndk.fetchEvents(filter);
+
+      debugger;
+
+      let latestEvent: NDKEvent | null = null;
+
+      // Find the most recent event
+      for (const event of events) {
+        if (!latestEvent || event.created_at! > latestEvent.created_at!) {
+          latestEvent = event;
+        }
+      }
+
+      if (latestEvent) {
+        try {
+          const profileData = JSON.parse(latestEvent.content);
+          return {
+            name: profileData.name || '',
+            displayName: profileData.display_name || profileData.displayName || '',
+            about: profileData.about || '',
+            picture: profileData.picture || '',
+            banner: profileData.banner || '',
+            nip05: profileData.nip05 || '',
+            lud16: profileData.lud16 || '',
+            website: profileData.website || ''
+          };
+        } catch (error) {
+          console.error('Error parsing profile data:', error);
+        }
       }
       return null;
     } catch (error) {

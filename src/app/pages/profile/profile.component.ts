@@ -10,6 +10,7 @@ import NDK, {
   NDKEvent,
   NDKNip07Signer,
   NDKPrivateKeySigner,
+  NDKUser,
 } from '@nostr-dev-kit/ndk';
 
 export interface NostrProfile {
@@ -616,6 +617,7 @@ export class ProfileComponent implements OnInit {
   private relayService = inject(RelayService);
 
   pubkey: string | null = null;
+  npub: string | null = null;
   loading = true;
 
   tabs = [
@@ -652,6 +654,7 @@ export class ProfileComponent implements OnInit {
   showPreview = false;
   showSigningDialog = false;
   dataToSign: any = null;
+  user: NDKUser | null = null;
 
   constructor() {
     // Initialize with empty states
@@ -665,9 +668,27 @@ export class ProfileComponent implements OnInit {
   ngOnInit() {
     this.route.paramMap.subscribe((params) => {
       const pubkey = params.get('pubkey');
+      debugger;
       if (pubkey) {
-        this.pubkey = pubkey;
-        this.loadProfileData(pubkey);
+        if (pubkey.startsWith('npub')) {
+          this.user = new NDKUser({
+            npub: pubkey,
+            relayUrls: this.relayService.relayUrls,
+          });
+         } else {
+          this.user = new NDKUser({
+            pubkey: pubkey,
+            relayUrls: this.relayService.relayUrls,
+          });
+        }
+
+        debugger; 
+
+        this.npub = this.user.npub;
+        this.pubkey = this.user.pubkey;
+        // this.pubkey = pubkey;
+
+        this.loadProfileData(this.pubkey);
       }
     });
   }
@@ -675,34 +696,47 @@ export class ProfileComponent implements OnInit {
   async loadProfileData(pubkey: string) {
     this.loading = true;
     try {
+      debugger;
       // Load profile metadata (kind 0)
       const profileData = await this.relayService.loadProfileMetadata(pubkey);
       if (profileData) {
-        this.profile = profileData;
+        console.log('Loaded profile:', profileData);
+        this.profile = {
+          name: profileData.name || '',
+          displayName: profileData.displayName || '',
+          about: profileData.about || '',
+          picture: profileData.picture || '',
+          banner: profileData.banner || '',
+          nip05: profileData.nip05 || '',
+          lud16: profileData.lud16 || '',
+          website: profileData.website || '',
+        };
       }
 
-      // Load project content (kind 30078 with d=angor:project)
+      // Load project content
       const projectData = await this.relayService.loadProjectContent(pubkey);
       if (projectData) {
         this.projectContent = {
-          content: projectData.content,
+          content: projectData.content || '',
           lastUpdated: projectData.created_at,
         };
       }
 
-      // Load FAQ (kind 30078 with d=angor:faq)
+      // Load FAQ
       const faqData = await this.relayService.loadFaqContent(pubkey);
-      if (faqData) {
+      if (faqData && Array.isArray(faqData)) {
         this.faqItems = faqData.map((item) => ({
           ...item,
           id: crypto.randomUUID(),
         }));
       }
 
-      // Load members (kind 30078 with d=angor:members)
+      // Load members
       const membersData = await this.relayService.loadMembers(pubkey);
       if (membersData) {
-        this.members = membersData;
+        this.members = {
+          pubkeys: membersData.pubkeys || [],
+        };
       }
     } catch (error) {
       console.error('Error loading profile data:', error);
