@@ -301,7 +301,8 @@ export class RelayService {
             banner: profileData.banner || '',
             nip05: profileData.nip05 || '',
             lud16: profileData.lud16 || '',
-            website: profileData.website || ''
+            website: profileData.website || '',
+            identityTags: profileData.identityTags || []
           };
           
           // Store original data
@@ -462,27 +463,52 @@ export class RelayService {
     }
   }
 
-  createEventsFromData(pubkey: string, data: any) {
-    const now = Math.floor(Date.now() / 1000);
-    const events = [];
+  async getProfileEvent(pubkey: string): Promise<NDKEvent | null> {
+    try {
+      const ndk = await this.ensureConnected();
+      const filter = {
+        kinds: [0],
+        authors: [pubkey],
+        limit: 1
+      };
+      const event = await ndk.fetchEvent(filter);
+      return event;
+    } catch (error) {
+      console.error('Error fetching profile event:', error);
+      return null;
+    }
+  }
 
-    // Profile metadata event (kind 0)
+  createEventsFromData(pubkey: string, data: any) {
+    const events = [];
+    const now = Math.floor(Date.now() / 1000);
+
     if (data.profile) {
       const ndkEvent = new NDKEvent();
       ndkEvent.kind = NDKKind.Metadata;
-      ndkEvent.content = JSON.stringify(data.profile);
-      events.push(ndkEvent);
+      ndkEvent.content = JSON.stringify({
+        name: data.profile.name,
+        display_name: data.profile.displayName,
+        about: data.profile.about,
+        picture: data.profile.picture,
+        banner: data.profile.banner,
+        nip05: data.profile.nip05,
+        lud16: data.profile.lud16,
+        website: data.profile.website,
+      });
 
-      // events.push({
-      //   kind: 0,
-      //   created_at: now,
-      //   content: JSON.stringify(data.profile),
-      //   tags: [],
-      //   pubkey
-      // });
+      // Add identity tags if present
+      if (data.profile.identityTags) {
+        data.profile.identityTags.forEach((link: any) => {
+          if (link.platform && link.identity && link.proof) {
+            ndkEvent.tags.push(['i', `${link.platform}:${link.identity}`, link.proof]);
+          }
+        });
+      }
+
+      events.push(ndkEvent);
     }
 
-    // Project content event (kind 30078)
     if (data.project) {
 
       const ndkEvent = new NDKEvent();
@@ -491,16 +517,8 @@ export class RelayService {
       ndkEvent.tags = [['d', 'angor:project']],
       events.push(ndkEvent);
 
-      // events.push({
-      //   kind: 30078,
-      //   created_at: now,
-      //   content: data.project.content,
-      //   tags: [['d', 'angor:project']],
-      //   pubkey,
-      // });
     }
 
-    // FAQ content event (kind 30078)
     if (data.faq) {
       const faqContent = data.faq.map(({ id, ...item }: FaqItem) => item); // Remove internal id properties
       
@@ -510,16 +528,8 @@ export class RelayService {
       ndkEvent.tags = [['d', 'angor:faq']],
       events.push(ndkEvent);
       
-      // events.push({
-      //   kind: 30078,
-      //   created_at: now,
-      //   content: JSON.stringify(faqContent),
-      //   tags: [['d', 'angor:faq']],
-      //   pubkey,
-      // });
     }
 
-    // Members list event (kind 30078)
     if (data.members) {
 
 
@@ -529,13 +539,6 @@ export class RelayService {
       ndkEvent.tags = [['d', 'angor:members']],
       events.push(ndkEvent);
 
-      // events.push({
-      //   kind: 30078,
-      //   created_at: now,
-      //   content: JSON.stringify(data.members),
-      //   tags: [['d', 'angor:members']],
-      //   pubkey,
-      // });
     }
 
     return events;

@@ -22,6 +22,7 @@ export interface NostrProfile {
   nip05: string;
   lud16: string;
   website: string;
+  identityTags: IdentityLink[];
 }
 
 interface ProjectContent {
@@ -31,6 +32,12 @@ interface ProjectContent {
 
 interface ProjectMembers {
   pubkeys: string[];
+}
+
+interface IdentityLink {
+  platform: string;
+  identity: string;
+  proof: string;
 }
 
 @Component({
@@ -304,6 +311,47 @@ interface ProjectMembers {
             </button>
           </div>
         </div>
+
+        <div *ngSwitchCase="'links'" class="profile-section">
+          <h2>External Identities</h2>
+          <p class="helper-text">
+            Link your external identities and social media accounts. Add proof links to verify ownership.
+          </p>
+
+          <div class="links-container">
+            <div *ngFor="let link of profile.identityTags; let i = index" class="link-item">
+              <div class="link-inputs">
+                <select [(ngModel)]="link.platform" class="platform-select">
+                  <option value="">Select Platform</option>
+                  <option *ngFor="let platform of platformSuggestions" [value]="platform">
+                    {{platform}}
+                  </option>
+                  <option value="custom">Custom</option>
+                </select>
+                
+                <input
+                  type="text"
+                  [(ngModel)]="link.identity"
+                  placeholder="Username or ID"
+                  class="identity-input"
+                />
+                
+                <input
+                  type="text"
+                  [(ngModel)]="link.proof"
+                  placeholder="Proof URL or identifier"
+                  class="proof-input"
+                />
+              </div>
+              
+              <button class="delete-button" (click)="removeIdentityLink(i)">×</button>
+            </div>
+
+            <button class="add-link-button" (click)="addIdentityLink()">
+              + Add Identity Link
+            </button>
+          </div>
+        </div>
       </div>
 
       <div class="actions">
@@ -565,7 +613,7 @@ interface ProjectMembers {
       .add-faq-button:hover {
         background: var(--surface-hover);
         border-color: var(--accent);
-        color: var(--accent);
+        color: var (--accent);
       }
 
       .members-container {
@@ -603,6 +651,56 @@ interface ProjectMembers {
         border-color: var(--accent);
         color: var(--accent);
       }
+
+      .links-container {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        margin-top: 1.5rem;
+      }
+
+      .link-item {
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+        background: var(--surface-ground);
+        padding: 1rem;
+        border-radius: 4px;
+      }
+
+      .link-inputs {
+        display: flex;
+        gap: 0.5rem;
+        flex: 1;
+      }
+
+      .platform-select {
+        width: 150px;
+      }
+
+      .identity-input,
+      .proof-input {
+        flex: 1;
+      }
+
+      .add-link-button {
+        background: var(--surface-card);
+        border: 2px dashed var(--border);
+        color: var(--text);
+        padding: 1rem;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 1rem;
+        transition: all 0.2s ease;
+        width: 100%;
+        margin-top: 1rem;
+      }
+
+      .add-link-button:hover {
+        background: var(--surface-hover);
+        border-color: var(--accent);
+        color: var(--accent);
+      }
     `,
   ],
 })
@@ -619,6 +717,7 @@ export class ProfileComponent implements OnInit {
     { id: 'project', label: 'Project' },
     { id: 'faq', label: 'FAQ' },
     { id: 'members', label: 'Members' },
+    { id: 'links', label: 'Links' }
   ];
 
   activeTab = 'profile';
@@ -632,6 +731,7 @@ export class ProfileComponent implements OnInit {
     nip05: '',
     lud16: '',
     website: '',
+    identityTags: []
   };
 
   projectContent: ProjectContent = {
@@ -644,6 +744,17 @@ export class ProfileComponent implements OnInit {
   members: ProjectMembers = {
     pubkeys: [],
   };
+
+  platformSuggestions = [
+    'github',
+    'twitter',
+    'mastodon',
+    'telegram',
+    'discord',
+    'linkedin',
+    'facebook',
+    'instagram'
+  ];
 
   showPreview = false;
   showSigningDialog = false;
@@ -698,7 +809,25 @@ export class ProfileComponent implements OnInit {
           nip05: profileData.nip05 || '',
           lud16: profileData.lud16 || '',
           website: profileData.website || '',
+          identityTags: []
         };
+
+        // Extract identity tags from the event tags
+        const identityTags: IdentityLink[] = [];
+        const event = await this.relayService.getProfileEvent(pubkey);
+        if (event && event.tags) {
+          event.tags.forEach(tag => {
+            if (tag[0] === 'i' && tag.length >= 3) {
+              const [platform, identity] = tag[1].split(':');
+              identityTags.push({
+                platform,
+                identity,
+                proof: tag[2]
+              });
+            }
+          });
+        }
+        this.profile.identityTags = identityTags;
       }
 
       const projectData = await this.relayService.loadProjectContent(pubkey);
@@ -790,6 +919,18 @@ export class ProfileComponent implements OnInit {
 
   removeMember(index: number) {
     this.members.pubkeys.splice(index, 1);
+  }
+
+  addIdentityLink() {
+    this.profile.identityTags.push({
+      platform: '',
+      identity: '',
+      proof: ''
+    });
+  }
+
+  removeIdentityLink(index: number) {
+    this.profile.identityTags.splice(index, 1);
   }
 
   saveProfile() {
