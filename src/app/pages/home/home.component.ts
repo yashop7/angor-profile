@@ -108,7 +108,7 @@ export class HomeComponent implements OnInit {
   }
 
   openProfile() {
-    if (this.profileId) {
+    if (this.profileId && this.isValidNpub()) {
       localStorage.setItem(this.STORAGE_KEY, this.profileId);
       this.router.navigate(['/profile', this.profileId]);
     }
