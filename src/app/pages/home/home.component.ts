@@ -1,13 +1,15 @@
 import { Component } from '@angular/core';
 import { BreadcrumbComponent } from '../../components/breadcrumb.component';
+import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [BreadcrumbComponent],
+  imports: [BreadcrumbComponent, FormsModule],
   template: `
     <section class="hero">
-    <app-breadcrumb [items]="[{ label: 'Home', url: '' }]"></app-breadcrumb>
+      <app-breadcrumb [items]="[{ label: 'Home', url: '' }]"></app-breadcrumb>
 
       <div class="hero-wrapper">
         <div class="hero-content">
@@ -16,10 +18,20 @@ import { BreadcrumbComponent } from '../../components/breadcrumb.component';
             Angor Profile is a Nostr profile editor, built specifically to manage the 
             profile information for Angor projects.
           </p>
-          <a href="https://hub.angor.io/explore" class="cta-button">
-            Explore All Projects
-            <span class="arrow">→</span>
-          </a>
+          <div class="action-container" style="display: flex; gap: 1rem; align-items: center;">
+            <input 
+              [(ngModel)]="profileId" 
+              placeholder="npub..." 
+              style="padding: 0.5rem; border-radius: 4px; border: 1px solid #ccc;"
+            >
+            <button 
+              (click)="openProfile()" 
+              class="cta-button"
+              style="white-space: nowrap; border: none;"
+            >
+              Open Profile
+            </button>
+          </div>
         </div>
       </div>
     </section>
@@ -53,4 +65,13 @@ import { BreadcrumbComponent } from '../../components/breadcrumb.component';
   `
 })
 export class HomeComponent {
+  profileId: string = '';
+
+  constructor(private router: Router) {}
+
+  openProfile() {
+    if (this.profileId) {
+      this.router.navigate(['/profile', this.profileId]);
+    }
+  }
 }

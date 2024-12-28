@@ -15,8 +15,8 @@ import { environment } from '../environment';
           <img src="images/logo-text.svg" alt="Angor Profile Logo" class="logo">
         </a>
         <div class="nav-links">
-          <a href="https://hub.angor.io/explore">Explore</a>
-          <a routerLink="/profile">Profile</a>
+          <!-- <a href="https://hub.angor.io/explore">Explore</a>
+          <a routerLink="/profile">Profile</a> -->
           <button (click)="toggleTheme()" class="theme-toggle">
             {{ (themeService.theme$ | async) === 'light' ? '☀️' : '🌙' }}
           </button>
@@ -39,17 +39,17 @@ import { environment } from '../environment';
           <div class="footer-section">
             <h3>About</h3>
             <ul>
-              <li><a href="/terms">Terms of Use</a></li>
-              <li><a href="/privacy">Privacy Policy</a></li>
+              <li><a href="https://hub.angor.io/terms">Terms of Use</a></li>
+              <li><a href="https://hub.angor.io/privacy">Privacy Policy</a></li>
             </ul>
           </div>
 
           <div class="footer-section">
             <h3>Features</h3>
             <ul>
+              <li><a href="https://hub.angor.io" target="_blank">Angor Hub</a></li>
               <li><a href="https://test.angor.io" target="_blank">Angor Testnet</a></li>
               <li><a href="https://angor.io" target="_blank">Angor Homepage</a></li>
-              <li><a href="https://mempool.space" target="_blank">Block Explorer</a></li>
             </ul>
           </div>
 
