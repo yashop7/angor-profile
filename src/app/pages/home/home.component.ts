@@ -7,6 +7,35 @@ import { Router } from '@angular/router';
   selector: 'app-home',
   standalone: true,
   imports: [BreadcrumbComponent, FormsModule],
+  styles: [`
+    .action-container {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .profile-input {
+      padding: 1rem;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-size: 1.1em;
+      width: 100%;
+      max-width: 400px;
+      background: #f8f8f8;
+      transition: all 0.2s ease;
+    }
+
+    .profile-button {
+      cursor: pointer;
+      white-space: nowrap;
+      border: none;
+      width: fit-content;
+    }
+
+    .profile-button:disabled {
+      opacity: 0.5;
+    }
+  `],
   template: `
     <section class="hero">
       <app-breadcrumb [items]="[{ label: 'Home', url: '' }]"></app-breadcrumb>
@@ -18,17 +47,16 @@ import { Router } from '@angular/router';
             Angor Profile is a Nostr profile editor, built specifically to manage the 
             profile information for Angor projects.
           </p>
-          <div class="action-container" style="display: flex; flex-direction: column; gap: 1rem;">
+          <div class="action-container">
             <input 
               [(ngModel)]="profileId" 
               placeholder="npub..." 
               (keyup.enter)="openProfile()"
-              style="padding: 1rem; border-radius: 8px; border: 1px solid #ccc; font-size: 1.1em; width: 100%; max-width: 400px; background: #f8f8f8; transition: all 0.2s ease;"
+              class="profile-input"
             >
             <button 
               (click)="openProfile()" 
-              class="cta-button"
-              style="cursor: pointer; white-space: nowrap; border: none; width: fit-content; opacity: {{ isValidNpub() ? '1' : '0.5' }};"
+              class="cta-button profile-button"
               [disabled]="!isValidNpub()"
             >
               Open Profile
