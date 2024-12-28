@@ -24,7 +24,7 @@ import { BreadcrumbComponent } from '../../components/breadcrumb.component';
       </div>
     </section>
 
-    <div class="features">
+    <!-- <div class="features">
       <div class="feature-card">
         <svg class="feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
@@ -49,7 +49,7 @@ import { BreadcrumbComponent } from '../../components/breadcrumb.component';
         <h2>Track Progress</h2>
         <p>Monitor your investments and stay updated on project developments.</p>
       </div>
-    </div>
+    </div> -->
   `
 })
 export class HomeComponent {
