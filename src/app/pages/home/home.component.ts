@@ -18,16 +18,18 @@ import { Router } from '@angular/router';
             Angor Profile is a Nostr profile editor, built specifically to manage the 
             profile information for Angor projects.
           </p>
-          <div class="action-container" style="display: flex; gap: 1rem; align-items: center;">
+          <div class="action-container" style="display: flex; flex-direction: column; gap: 1rem;">
             <input 
               [(ngModel)]="profileId" 
               placeholder="npub..." 
-              style="padding: 0.5rem; border-radius: 4px; border: 1px solid #ccc;"
+              (keyup.enter)="openProfile()"
+              style="padding: 1rem; border-radius: 8px; border: 1px solid #ccc; font-size: 1.1em; width: 100%; max-width: 400px; background: #f8f8f8; transition: all 0.2s ease;"
             >
             <button 
               (click)="openProfile()" 
               class="cta-button"
-              style="white-space: nowrap; border: none;"
+              style="cursor: pointer; white-space: nowrap; border: none; width: fit-content; opacity: {{ isValidNpub() ? '1' : '0.5' }};"
+              [disabled]="!isValidNpub()"
             >
               Open Profile
             </button>
@@ -73,5 +75,9 @@ export class HomeComponent {
     if (this.profileId) {
       this.router.navigate(['/profile', this.profileId]);
     }
+  }
+
+  isValidNpub(): boolean {
+    return this.profileId.toLowerCase().startsWith('npub');
   }
 }
