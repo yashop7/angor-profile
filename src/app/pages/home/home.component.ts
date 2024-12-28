@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { BreadcrumbComponent } from '../../components/breadcrumb.component';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -94,13 +94,22 @@ import { Router } from '@angular/router';
     </div> -->
   `
 })
-export class HomeComponent {
+export class HomeComponent implements OnInit {
   profileId: string = '';
+  private readonly STORAGE_KEY = 'angor-profile-id';
 
   constructor(private router: Router) {}
 
+  ngOnInit() {
+    const savedProfileId = localStorage.getItem(this.STORAGE_KEY);
+    if (savedProfileId) {
+      this.profileId = savedProfileId;
+    }
+  }
+
   openProfile() {
     if (this.profileId) {
+      localStorage.setItem(this.STORAGE_KEY, this.profileId);
       this.router.navigate(['/profile', this.profileId]);
     }
   }
