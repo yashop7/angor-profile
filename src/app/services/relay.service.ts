@@ -66,29 +66,21 @@ export class RelayService {
   public ndk: NDK | null = null;
   private isConnected = false;
   public relayUrls = [
+    'wss://purplepag.es',
     'wss://relay.primal.net',
     'wss://nos.lol',
-    // 'wss://relay.angor.io',
+    'wss://relay.angor.io',
     'wss://relay2.angor.io',
   ];
 
-  private connectedRelays = signal<string[]>([]);
   public projects = signal<ProjectEvent[]>([]);
   public loading = signal<boolean>(false);
   public profileUpdates = new Subject<ProfileUpdate>();
   public projectUpdates = new Subject<ProjectUpdate>();
-
   private originalProfileData: { [key: string]: any } = {};
 
   constructor() {
     this.initializeRelays();
-
-    effect(() => {
-      // Automatically fetch projects when relays are connected
-      if (this.connectedRelays().length > 0) {
-        this.subscribeToProjects();
-      }
-    });
   }
 
   public async ensureConnected(): Promise<NDK> {
@@ -216,23 +208,6 @@ export class RelayService {
     }
   }
 
-  private subscribeToProjects() {
-    // this.loading.set(true);
-    // const filter: Filter = {
-    //   kinds: [1],
-    //   tags: [['t', 'project']],
-    //   limit: 100,
-    // };
-    // let sub = this.pool.sub(this.relayUrls, [filter]);
-    // sub.on('event', (event: Event) => {
-    //   this.projects.update((projects) => [...projects, event]);
-    // });
-    // sub.on('eose', () => {
-    //   this.loading.set(false);
-    //   sub.unsub();
-    // });
-  }
-
   public async loadMembers(
     pubkey: string | null
   ): Promise<ProjectMembers | null> {
@@ -300,19 +275,20 @@ export class RelayService {
           const profileData = JSON.parse(latestEvent.content);
           const profile = {
             name: profileData.name || '',
-            displayName: profileData.display_name || profileData.displayName || '',
+            displayName:
+              profileData.display_name || profileData.displayName || '',
             about: profileData.about || '',
             picture: profileData.picture || '',
             banner: profileData.banner || '',
             nip05: profileData.nip05 || '',
             lud16: profileData.lud16 || '',
             website: profileData.website || '',
-            identityTags: profileData.identityTags || []
+            identityTags: profileData.identityTags || [],
           };
-          
+
           // Store original data
           this.originalProfileData[pubkey!] = this.deepClone(profile);
-          
+
           return profile;
         } catch (error) {
           console.error('Error parsing profile data:', error);
@@ -370,7 +346,7 @@ export class RelayService {
         const faqItems = JSON.parse(event.content);
         return faqItems.map((item: any) => ({
           ...item,
-          id: crypto.randomUUID()
+          id: crypto.randomUUID(),
         }));
       }
       return null;
@@ -434,7 +410,10 @@ export class RelayService {
       const event = new NDKEvent(ndk);
       event.kind = NDKKind.AppSpecificData;
       // Only save question and answer, strip the id
-      const faqContent = faq.map(({ question, answer }) => ({ question, answer }));
+      const faqContent = faq.map(({ question, answer }) => ({
+        question,
+        answer,
+      }));
       event.content = JSON.stringify(faqContent);
       event.tags = [['d', 'angor:faq']];
       await event.publish();
@@ -516,7 +495,7 @@ export class RelayService {
       const filter = {
         kinds: [0],
         authors: [pubkey],
-        limit: 1
+        limit: 1,
       };
       const event = await ndk.fetchEvent(filter);
       return event;
@@ -552,7 +531,11 @@ export class RelayService {
       if (data.profile.identityTags) {
         data.profile.identityTags.forEach((link: any) => {
           if (link.platform && link.identity) {
-            ndkEvent.tags.push(['i', `${link.platform}:${link.identity}`, link.proof]);
+            ndkEvent.tags.push([
+              'i',
+              `${link.platform}:${link.identity}`,
+              link.proof,
+            ]);
           }
         });
       }
@@ -561,46 +544,36 @@ export class RelayService {
     }
 
     if (data.project) {
-
       const ndkEvent = new NDKEvent();
       ndkEvent.kind = NDKKind.AppSpecificData;
       ndkEvent.content = data.project.content;
-      ndkEvent.tags = [['d', 'angor:project']],
-      events.push(ndkEvent);
-
+      (ndkEvent.tags = [['d', 'angor:project']]), events.push(ndkEvent);
     }
 
     if (data.faq) {
-      const faqContent = data.faq.map(({ question, answer }: FaqItem) => ({ 
-        question, 
-        answer 
+      const faqContent = data.faq.map(({ question, answer }: FaqItem) => ({
+        question,
+        answer,
       }));
-      
+
       const ndkEvent = new NDKEvent();
       ndkEvent.kind = NDKKind.AppSpecificData;
       ndkEvent.content = JSON.stringify(faqContent);
-      ndkEvent.tags = [['d', 'angor:faq']],
-      events.push(ndkEvent);
-      
+      (ndkEvent.tags = [['d', 'angor:faq']]), events.push(ndkEvent);
     }
 
     if (data.members) {
-
-
       const ndkEvent = new NDKEvent();
       ndkEvent.kind = NDKKind.AppSpecificData;
       ndkEvent.content = JSON.stringify(data.members);
-      ndkEvent.tags = [['d', 'angor:members']],
-      events.push(ndkEvent);
-
+      (ndkEvent.tags = [['d', 'angor:members']]), events.push(ndkEvent);
     }
 
     if (data.media) {
       const ndkEvent = new NDKEvent();
       ndkEvent.kind = NDKKind.AppSpecificData;
       ndkEvent.content = JSON.stringify(data.media);
-      ndkEvent.tags = [['d', 'angor:media']],
-      events.push(ndkEvent);
+      (ndkEvent.tags = [['d', 'angor:media']]), events.push(ndkEvent);
     }
 
     return events;
@@ -642,7 +615,23 @@ export class RelayService {
   }
 
   // Add this helper method
-   deepClone<T>(obj: T): T {
+  deepClone<T>(obj: T): T {
     return JSON.parse(JSON.stringify(obj));
+  }
+
+  async reconnectWithRelays(relayUrls: string[]) {
+    // Clean up existing NDK instance if it exists
+    if (this.ndk) {
+      this.ndk = null;
+      // await this.ndk.disconnect();
+    }
+
+    // Create new NDK instance with updated relay list
+    this.ndk = new NDK({
+      explicitRelayUrls: relayUrls,
+    });
+
+    // Connect to the new relay set
+    await this.ndk.connect();
   }
 }

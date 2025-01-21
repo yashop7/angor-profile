@@ -398,6 +398,38 @@ interface MediaItem {
             </div>
           </div>
         </div>
+
+        <div *ngSwitchCase="'relays'" class="profile-section">
+          <h2>Relay Servers</h2>
+          <p class="helper-text">
+            Manage the relay servers that your profile will connect to. These relays will be used to publish and retrieve your project data.
+          </p>
+
+          <div class="relays-container">
+            <div class="relay-input">
+              <input
+                type="text"
+                [(ngModel)]="newRelayUrl"
+                placeholder="wss://relay.example.com"
+                class="relay-url-input"
+                (keyup.enter)="addRelay()"
+              />
+              <button class="primary-button" (click)="addRelay()">Add Relay</button>
+            </div>
+
+            <div class="relay-list">
+              <div *ngFor="let relay of relays; let i = index" class="relay-item">
+                <span class="relay-url">{{relay}}</span>
+                <button class="delete-button" (click)="removeRelay(i)" 
+                        [disabled]="relays.length === 1">×</button>
+              </div>
+            </div>
+
+            <div class="relay-actions">
+              <button class="primary-button" (click)="applyAndConnect()">Apply and Connect</button>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div class="actions">
@@ -822,6 +854,53 @@ interface MediaItem {
       .media-controls button:hover {
         background: rgba(0, 0, 0, 0.7);
       }
+
+      .relays-container {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+        margin-top: 1.5rem;
+      }
+
+      .relay-input {
+        display: flex;
+        gap: 0.5rem;
+      }
+
+      .relay-url-input {
+        flex: 1;
+      }
+
+      .relay-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+
+      .relay-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: var(--surface-ground);
+        padding: 0.75rem 1rem;
+        border-radius: 4px;
+      }
+
+      .relay-url {
+        font-family: monospace;
+        word-break: break-all;
+      }
+
+      .relay-item .delete-button[disabled] {
+        opacity: 0.3;
+        cursor: not-allowed;
+      }
+
+      .relay-actions {
+        margin-top: 1rem;
+        display: flex;
+        justify-content: flex-end;
+      }
     `,
   ],
 })
@@ -887,6 +966,10 @@ export class ProfileComponent implements OnInit {
   dataToSign: any = null;
   user: NDKUser | null = null;
 
+  // Add new property for relay management
+  relays: string[] = [];
+  newRelayUrl = '';
+
   constructor() {
     // Initialize with empty states
     this.addFaqItem();
@@ -918,6 +1001,9 @@ export class ProfileComponent implements OnInit {
         this.loadProfileData(this.pubkey);
       }
     });
+
+    // Initialize relays from the relay service
+    this.relays = [...this.relayService.relayUrls];
   }
 
   async loadProfileData(pubkey: string) {
@@ -1083,6 +1169,48 @@ export class ProfileComponent implements OnInit {
 
   dropMedia(event: CdkDragDrop<MediaItem[]>) {
     moveItemInArray(this.mediaItems, event.previousIndex, event.currentIndex);
+  }
+
+  addRelay() {
+    if (!this.newRelayUrl) return;
+    
+    // Basic validation for wss:// or ws:// protocol
+    if (!this.newRelayUrl.startsWith('wss://') && !this.newRelayUrl.startsWith('ws://')) {
+      this.newRelayUrl = 'wss://' + this.newRelayUrl;
+    }
+    
+    if (!this.relays.includes(this.newRelayUrl)) {
+      this.relays.push(this.newRelayUrl);
+    }
+    
+    this.newRelayUrl = '';
+  }
+
+  removeRelay(index: number) {
+    this.relays.splice(index, 1);
+  }
+
+  async applyAndConnect() {
+    try {
+      // Update relay URLs in the service
+      this.relayService.relayUrls = [...this.relays];
+      
+      // Recreate NDK instance with new relays
+      await this.relayService.reconnectWithRelays(this.relays);
+      
+      // Refresh user instance with new relays
+      if (this.user) {
+        this.user = new NDKUser({
+          pubkey: this.pubkey,
+          relayUrls: this.relays,
+        });
+      }
+
+      alert('Successfully connected to new relay set');
+    } catch (error) {
+      console.error('Error reconnecting to relays:', error);
+      alert('Failed to connect to new relay set');
+    }
   }
 
   saveProfile() {
