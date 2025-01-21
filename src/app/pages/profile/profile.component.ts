@@ -76,7 +76,7 @@ interface MediaItem {
     </section>
 
     <div class="container">
-      <div class="tabs">
+      <div class="tabs" [class.mobile]="isMobile">
         <button
           *ngFor="let tab of tabs"
           [class.active]="activeTab === tab.id"
@@ -430,6 +430,21 @@ interface MediaItem {
             </div>
           </div>
         </div>
+
+        <div *ngIf="isMobile" class="mobile-navigation">
+          <button 
+            class="nav-button previous" 
+            (click)="previousTab()"
+            *ngIf="activeTab !== tabs[0].id">
+            ← Previous
+          </button>
+          <button 
+            class="nav-button next" 
+            (click)="nextTab()"
+            *ngIf="activeTab !== tabs[tabs.length-1].id">
+            Next →
+          </button>
+        </div>
       </div>
 
       <div class="actions">
@@ -490,6 +505,67 @@ interface MediaItem {
         right: 0;
         height: 2px;
         background: var(--accent);
+      }
+
+      .tabs.mobile {
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 0.5rem;
+      }
+
+      .tabs.mobile button {
+        font-size: 0.9rem;
+        padding: 0.5rem 1rem;
+      }
+
+      @media (max-width: 768px) {
+        .tabs {
+          display: none;
+        }
+
+        .profile-section {
+          margin: 1rem;
+          padding: 1rem;
+        }
+
+        .mobile-navigation {
+          display: flex;
+          justify-content: space-between;
+          gap: 1rem;
+          margin-top: 2rem;
+          padding: 0 1rem;
+        }
+
+        .nav-button {
+          padding: 0.75rem 1.5rem;
+          background: var(--surface-card);
+          border: 1px solid var(--border);
+          border-radius: 4px;
+          color: var(--text);
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+
+        .nav-button:hover {
+          background: var(--surface-hover);
+          transform: translateY(-1px);
+        }
+
+        .nav-button.previous {
+          padding-left: 1rem;
+        }
+
+        .nav-button.next {
+          padding-right: 1rem;
+        }
+      }
+
+      /* Add current step indicator for mobile */
+      .mobile-step-indicator {
+        text-align: center;
+        color: var(--text-secondary);
+        margin: 1rem 0;
+        font-size: 0.9rem;
       }
 
       .profile-section {
@@ -778,7 +854,7 @@ interface MediaItem {
 
       .add-link-button:hover {
         background: var(--surface-hover);
-        border-color: var(--accent);
+        border-color: var (--accent);
         color: var(--accent);
       }
 
@@ -972,9 +1048,31 @@ export class ProfileComponent implements OnInit {
   relays: string[] = [];
   newRelayUrl = '';
 
+  isMobile = false;
+
   constructor() {
     // Initialize with empty states
     this.addFaqItem();
+    this.checkScreenSize();
+    window.addEventListener('resize', () => this.checkScreenSize());
+  }
+
+  private checkScreenSize() {
+    this.isMobile = window.innerWidth < 768;
+  }
+
+  nextTab() {
+    const currentIndex = this.tabs.findIndex(tab => tab.id === this.activeTab);
+    if (currentIndex < this.tabs.length - 1) {
+      this.activeTab = this.tabs[currentIndex + 1].id;
+    }
+  }
+
+  previousTab() {
+    const currentIndex = this.tabs.findIndex(tab => tab.id === this.activeTab);
+    if (currentIndex > 0) {
+      this.activeTab = this.tabs[currentIndex - 1].id;
+    }
   }
 
   trackByIndex(index: number, item: any): number {
