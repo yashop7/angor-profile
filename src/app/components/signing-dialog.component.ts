@@ -58,6 +58,11 @@ import { MediaItem } from '../services/relay.service';
                 </div>
               </div>
 
+              <div *ngSwitchCase="'links'">
+                <h3>Identity Links:</h3>
+                <pre>{{ dataToSign?.profile?.identityTags | json }}</pre>
+              </div>
+
             </ng-container>
           </div>
         </div>
@@ -368,6 +373,7 @@ export class SigningDialogComponent {
     { id: 'project', label: 'Project' },
     { id: 'faq', label: 'FAQ' },
     { id: 'members', label: 'Members' },
+    { id: 'links', label: 'Links' },
     { id: 'media', label: 'Media' }
   ];
 

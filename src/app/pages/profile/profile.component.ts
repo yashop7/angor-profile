@@ -918,7 +918,9 @@ export class ProfileComponent implements OnInit {
     { id: 'faq', label: 'FAQ' },
     { id: 'members', label: 'Members' },
     { id: 'links', label: 'Links' },
-    { id: 'media', label: 'Media' }
+    { id: 'media', label: 'Media' },
+    { id: 'relays', label: 'Relays' }
+
   ];
 
   activeTab = 'profile';
