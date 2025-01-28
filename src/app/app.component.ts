@@ -3,14 +3,16 @@ import { RouterOutlet, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { ThemeService } from './services/theme.service';
 import { environment } from '../environment';
+import { AppLauncherComponent } from './components/app-launcher.component';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, RouterLink, CommonModule],
+  imports: [RouterOutlet, RouterLink, CommonModule, AppLauncherComponent],
   template: `
     <header>
       <nav>
+      <app-launcher></app-launcher>
         <a routerLink="/" class="logo-link">
           <img src="images/logo-text.svg" alt="Angor Profile Logo" class="logo">
         </a>
