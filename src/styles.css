@@ -12,6 +12,7 @@
   --accent-dark: #065666;
   --accent-light: #0a8ca7;
   --surface-card: #f8f9fa;
+  --scrollbar: silver;
 }
 
 [data-theme="dark"] {
@@ -24,6 +25,7 @@
   --accent-dark: #086c81;
   --accent-light: #0caac9;
   --surface-card: #242424;
+  --scrollbar: gray;
 }
 
 /* Inter Variable Font */
@@ -49,6 +51,16 @@ body {
   overflow-x: hidden;
   background-color: var(--background);
   color: var(--text);
+}
+
+::-webkit-scrollbar {
+  background-color: transparent;
+  width: 6px;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: var(--scrollbar);
+  border-radius: 6px;
 }
 
 * {
