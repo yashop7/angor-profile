@@ -63,10 +63,6 @@ body {
   border-radius: 6px;
 }
 
-* {
-  scrollbar-color: var(--border) var(--background);
-}
-
 header {
   background: var(--header-bg);
   padding: 1rem;
