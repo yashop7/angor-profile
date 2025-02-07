@@ -13,6 +13,7 @@ import NDK, {
   NDKUser,
 } from '@nostr-dev-kit/ndk';
 import { CdkDragDrop, DragDropModule, moveItemInArray } from '@angular/cdk/drag-drop';
+import { ImageUploadComponent } from '../../components/image-upload.component';
 
 export interface NostrProfile {
   name: string;
@@ -54,7 +55,8 @@ interface MediaItem {
     BreadcrumbComponent,
     FormsModule,
     SigningDialogComponent,
-    DragDropModule
+    DragDropModule,
+    ImageUploadComponent
   ],
   template: `
     <section class="hero">
@@ -120,24 +122,22 @@ interface MediaItem {
               ></textarea>
             </div>
 
-            <div class="form-group">
-              <label for="picture">Profile Picture URL</label>
-              <input
-                id="picture"
-                type="url"
-                [(ngModel)]="profile.picture"
-                placeholder="https://example.com/picture.jpg"
-              />
+            <div class="form-group full-width">
+              <label>Profile Picture</label>
+              <app-image-upload 
+                label="Profile Picture"
+                [imageUrl]="profile.picture"
+                (urlChanged)="profile.picture = $event"
+              ></app-image-upload>
             </div>
 
-            <div class="form-group">
-              <label for="banner">Banner Image URL</label>
-              <input
-                id="banner"
-                type="url"
-                [(ngModel)]="profile.banner"
-                placeholder="https://example.com/banner.jpg"
-              />
+            <div class="form-group full-width">
+              <label>Banner Image</label>
+              <app-image-upload 
+                label="Banner Image"
+                [imageUrl]="profile.banner"
+                (urlChanged)="profile.banner = $event"
+              ></app-image-upload>
             </div>
 
             <div class="form-group">
