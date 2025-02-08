@@ -1,5 +1,12 @@
 import { Injectable, signal, effect } from '@angular/core';
-import { SimplePool, Filter, Event, Relay, getEventHash } from 'nostr-tools';
+import {
+  SimplePool,
+  Filter,
+  Event,
+  Relay,
+  getEventHash,
+  nip19,
+} from 'nostr-tools';
 import NDK, {
   NDKEvent,
   NDKFilter,
@@ -56,6 +63,15 @@ export interface ProjectContent {
 export interface MediaItem {
   url: string;
   type: 'image' | 'video';
+}
+
+export interface MemberProfile {
+  pubkey: string;
+  name?: string;
+  displayName?: string;
+  picture?: string;
+  nip05?: string;
+  about?: string;
 }
 
 @Injectable({
@@ -503,6 +519,62 @@ export class RelayService {
       console.error('Error fetching profile event:', error);
       return null;
     }
+  }
+
+  public async fetchMemberProfiles(
+    pubkeys: string[]
+  ): Promise<MemberProfile[]> {
+    const profiles: MemberProfile[] = [];
+    // const validPubkeys = pubkeys.filter(pk => pk && pk.length > 0);
+
+    const validPubkeys = pubkeys
+      .filter((pk) => pk && pk.length > 0)
+      .map((pk) => {
+        try {
+          // Check if the pubkey starts with 'npub'
+          if (pk.startsWith('npub')) {
+            const decoded = nip19.decode(pk);
+            return decoded.data as string;
+          }
+          return pk;
+        } catch (error) {
+          console.error('Error decoding pubkey:', pk, error);
+          return null;
+        }
+      })
+      .filter((pk) => pk !== null) as string[];
+
+    if (validPubkeys.length === 0) return profiles;
+
+    try {
+      const ndk = await this.ensureConnected();
+      const filter = {
+        kinds: [0],
+        authors: validPubkeys,
+      };
+
+      const events = await ndk.fetchEvents(filter);
+
+      for (const event of events) {
+        try {
+          const content = JSON.parse(event.content);
+          profiles.push({
+            pubkey: event.pubkey,
+            name: content.name,
+            displayName: content.display_name || content.displayName,
+            picture: content.picture,
+            nip05: content.nip05,
+            about: content.about,
+          });
+        } catch (error) {
+          console.error('Error parsing profile:', error);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching member profiles:', error);
+    }
+
+    return profiles;
   }
 
   createEventsFromData(pubkey: string, data: any) {

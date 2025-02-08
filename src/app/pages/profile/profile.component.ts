@@ -3,7 +3,7 @@ import { ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { BreadcrumbComponent } from '../../components/breadcrumb.component';
-import { FaqItem, RelayService } from '../../services/relay.service';
+import { FaqItem, RelayService, MemberProfile } from '../../services/relay.service';
 import { SigningDialogComponent } from '../../components/signing-dialog.component';
 import NDK, {
   calculateRelaySetFromEvent,
@@ -304,13 +304,36 @@ interface MediaItem {
               "
               class="member-item"
             >
-              <input
-                type="text"
-                [(ngModel)]="members.pubkeys[i]"
-                placeholder="npub..."
-                class="member-input"
-              />
-              <button class="delete-button" (click)="removeMember(i)">×</button>
+              <div class="member-input-group">
+                <input
+                  type="text"
+                  [(ngModel)]="members.pubkeys[i]"
+                  (ngModelChange)="onMemberKeyChange(i)"
+                  placeholder="npub..."
+                  class="member-input"
+                />
+                <button class="delete-button" (click)="removeMember(i)">×</button>
+              </div>
+              
+              <div *ngIf="memberProfiles[pubkey]" class="member-profile">
+                <img 
+                  *ngIf="memberProfiles[pubkey].picture"
+                  [src]="memberProfiles[pubkey].picture" 
+                  class="member-avatar"
+                  alt="Profile picture"
+                />
+                <div class="member-info">
+                  <div class="member-name">
+                    {{ memberProfiles[pubkey].displayName || memberProfiles[pubkey].name }}
+                  </div>
+                  <div class="member-nip05" *ngIf="memberProfiles[pubkey].nip05">
+                    ✓ {{ memberProfiles[pubkey].nip05 }}
+                  </div>
+                  <div class="member-about" *ngIf="memberProfiles[pubkey].about">
+                    {{ memberProfiles[pubkey].about }}
+                  </div>
+                </div>
+              </div>
             </div>
 
             <button class="add-member-button" (click)="addMember()">
@@ -977,6 +1000,52 @@ interface MediaItem {
         display: flex;
         justify-content: flex-end;
       }
+
+      .member-input-group {
+        display: flex;
+        gap: 0.5rem;
+        margin-bottom: 0.5rem;
+      }
+
+      .member-profile {
+        display: flex;
+        gap: 1rem;
+        padding: 1rem;
+        background: var(--surface-ground);
+        border-radius: 4px;
+        margin-bottom: 1rem;
+      }
+
+      .member-avatar {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        object-fit: cover;
+      }
+
+      .member-info {
+        flex: 1;
+      }
+
+      .member-name {
+        font-weight: 500;
+        margin-bottom: 0.25rem;
+      }
+
+      .member-nip05 {
+        font-size: 0.9rem;
+        color: var(--accent);
+        margin-bottom: 0.25rem;
+      }
+
+      .member-about {
+        font-size: 0.9rem;
+        color: var(--text-secondary);
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
     `,
   ],
 })
@@ -1049,6 +1118,8 @@ export class ProfileComponent implements OnInit {
   newRelayUrl = '';
 
   isMobile = false;
+
+  memberProfiles: { [key: string]: MemberProfile } = {};
 
   constructor() {
     // Initialize with empty states
@@ -1232,12 +1303,22 @@ export class ProfileComponent implements OnInit {
     }
   }
 
-  addMember() {
+  async addMember() {
     this.members.pubkeys.push('');
   }
 
   removeMember(index: number) {
     this.members.pubkeys.splice(index, 1);
+  }
+
+  async onMemberKeyChange(index: number) {
+    const pubkey = this.members.pubkeys[index];
+    if (pubkey && pubkey.length > 0) {
+      const profiles = await this.relayService.fetchMemberProfiles([pubkey]);
+      if (profiles.length > 0) {
+        this.memberProfiles[pubkey] = profiles[0];
+      }
+    }
   }
 
   addIdentityLink() {
