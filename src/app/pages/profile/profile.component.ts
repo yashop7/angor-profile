@@ -314,7 +314,7 @@ interface MediaItem {
                 />
                 <button class="delete-button" (click)="removeMember(i)">×</button>
               </div>
-              
+
               <div *ngIf="memberProfiles[pubkey]" class="member-profile">
                 <img 
                   *ngIf="memberProfiles[pubkey].picture"
@@ -804,12 +804,28 @@ interface MediaItem {
 
       .member-item {
         display: flex;
+        flex-direction: column;  // Changed from default flex to column
         gap: 0.5rem;
-        align-items: center;
+      }
+
+      .member-input-group {
+        display: flex;
+        gap: 0.5rem;
+        width: 100%;  // Added to ensure full width
       }
 
       .member-input {
         flex: 1;
+      }
+
+      .member-profile {
+        width: 100%;  // Added to ensure full width
+        display: flex;
+        gap: 1rem;
+        padding: 1rem;
+        background: var(--surface-ground);
+        border-radius: 4px;
+        margin-top: 0.5rem;  // Added space between input and profile
       }
 
       .add-member-button {
