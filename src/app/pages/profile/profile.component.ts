@@ -1246,8 +1246,27 @@ export class ProfileComponent implements OnInit {
     }
   }
 
-  setActiveTab(tabId: string) {
+  async setActiveTab(tabId: string) {
     this.activeTab = tabId;
+
+    console.log('Active TAB:', tabId);
+    console.log('Members:', this.members);
+    
+    // Load member profiles when switching to members tab
+    if (tabId === 'members' && this.members.pubkeys.length > 0) {
+
+      const validPubkeys = this.members.pubkeys.filter(pk => pk && pk.length > 0);
+      if (validPubkeys.length > 0) {
+        const profiles = await this.relayService.fetchMemberProfiles(validPubkeys);
+        
+        console.log('PROFILES:', profiles);
+        
+        profiles.forEach(profile => {
+          this.memberProfiles[profile.npub] = profile;
+        });
+      }
+
+    }
   }
 
   formatText(prefix: string, suffix: string) {

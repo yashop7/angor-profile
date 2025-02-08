@@ -66,6 +66,7 @@ export interface MediaItem {
 }
 
 export interface MemberProfile {
+  npub: string;
   pubkey: string;
   name?: string;
   displayName?: string;
@@ -525,7 +526,6 @@ export class RelayService {
     pubkeys: string[]
   ): Promise<MemberProfile[]> {
     const profiles: MemberProfile[] = [];
-    // const validPubkeys = pubkeys.filter(pk => pk && pk.length > 0);
 
     const validPubkeys = pubkeys
       .filter((pk) => pk && pk.length > 0)
@@ -544,6 +544,8 @@ export class RelayService {
       })
       .filter((pk) => pk !== null) as string[];
 
+      console.log('Fetching:', validPubkeys);
+
     if (validPubkeys.length === 0) return profiles;
 
     try {
@@ -559,6 +561,7 @@ export class RelayService {
         try {
           const content = JSON.parse(event.content);
           profiles.push({
+            npub: nip19.npubEncode(event.pubkey),
             pubkey: event.pubkey,
             name: content.name,
             displayName: content.display_name || content.displayName,
