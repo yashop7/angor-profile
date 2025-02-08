@@ -680,7 +680,7 @@ interface MediaItem {
 
       textarea {
         width: 100%;
-        min-height: 400px;
+        min-height: 200px; /* Reduced height */
         padding: 1rem;
         font-family: monospace;
         line-height: 1.6;
