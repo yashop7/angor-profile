@@ -1198,7 +1198,6 @@ export class ProfileComponent implements OnInit {
     try {
       const profileData = await this.relayService.loadProfileMetadata(pubkey);
       if (profileData) {
-        console.log('Loaded profile:', profileData);
         this.profile = {
           name: profileData.name || '',
           displayName: profileData.displayName || '',
@@ -1265,17 +1264,12 @@ export class ProfileComponent implements OnInit {
   async setActiveTab(tabId: string) {
     this.activeTab = tabId;
 
-    console.log('Active TAB:', tabId);
-    console.log('Members:', this.members);
-    
     // Load member profiles when switching to members tab
     if (tabId === 'members' && this.members.pubkeys.length > 0) {
 
       const validPubkeys = this.members.pubkeys.filter(pk => pk && pk.length > 0);
       if (validPubkeys.length > 0) {
         const profiles = await this.relayService.fetchMemberProfiles(validPubkeys);
-        
-        console.log('PROFILES:', profiles);
         
         profiles.forEach(profile => {
           this.memberProfiles[profile.npub] = profile;
@@ -1465,7 +1459,6 @@ export class ProfileComponent implements OnInit {
         for (const event of events) {
           const ndkEvent = new NDKEvent(this.relayService.ndk!, event);
           const published = await ndkEvent.publish();
-          console.log('PUBLISHED: ', published);
         }
       } else if (result.key) {
         this.relayService.ndk!.signer = new NDKPrivateKeySigner(result.key);
@@ -1473,7 +1466,6 @@ export class ProfileComponent implements OnInit {
         for (const event of events) {
           const ndkEvent = new NDKEvent(this.relayService.ndk!, event);
           const published = await ndkEvent.publish();
-          console.log('PUBLISHED: ', published);
         }
       }
 
