@@ -544,8 +544,6 @@ export class RelayService {
       })
       .filter((pk) => pk !== null) as string[];
 
-      console.log('Fetching:', validPubkeys);
-
     if (validPubkeys.length === 0) return profiles;
 
     try {
