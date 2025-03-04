@@ -13,9 +13,9 @@ import { AppLauncherComponent } from './components/app-launcher.component';
     <header>
       <nav>
       <app-launcher></app-launcher>
-        <a routerLink="/" class="logo-link">
+        <!-- <a routerLink="/" class="logo-link">
           <img src="images/logo-text.svg" alt="Angor Profile Logo" class="logo">
-        </a>
+        </a> -->
         <div class="nav-links">
           <!-- <a href="https://hub.angor.io/explore">Explore</a>
           <a routerLink="/profile">Profile</a> -->
