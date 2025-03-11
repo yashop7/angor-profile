@@ -295,7 +295,7 @@ interface MediaItem {
         <div *ngSwitchCase="'members'" class="profile-section">
           <h2>Team Members</h2>
           <p class="helper-text">
-            Add Nostr public keys of team members who can manage this project.
+            Add Nostr public keys of team members, their profiles will be listed on the project page. This does not give them permissions to edit the project.
           </p>
 
           <div class="members-container">
