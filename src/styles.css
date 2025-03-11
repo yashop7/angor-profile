@@ -53,6 +53,15 @@ body {
   color: var(--text);
 }
 
+a {
+  color: var(--accent);
+  text-decoration: none
+}
+
+a:hover {
+  color: var(--accent-light)
+}
+
 ::-webkit-scrollbar {
   background-color: transparent;
   width: 6px;
