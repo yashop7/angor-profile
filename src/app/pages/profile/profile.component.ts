@@ -14,6 +14,7 @@ import NDK, {
 } from '@nostr-dev-kit/ndk';
 import { CdkDragDrop, DragDropModule, moveItemInArray } from '@angular/cdk/drag-drop';
 import { ImageUploadComponent } from '../../components/image-upload.component';
+import { MarkdownModule } from 'ngx-markdown';
 
 export interface NostrProfile {
   name: string;
@@ -56,7 +57,8 @@ interface MediaItem {
     FormsModule,
     SigningDialogComponent,
     DragDropModule,
-    ImageUploadComponent
+    ImageUploadComponent,
+    MarkdownModule
   ],
   template: `
     <section class="hero">
@@ -239,7 +241,8 @@ interface MediaItem {
 
             <div *ngIf="showPreview" class="markdown-preview">
               <!-- TODO: Add markdown preview rendering -->
-              <pre>{{ projectContent.content }}</pre>
+              <markdown [data]="projectContent.content"></markdown>
+              <!-- <pre>{{ projectContent.content }}</pre> -->
             </div>
           </div>
         </div>
@@ -804,14 +807,14 @@ interface MediaItem {
 
       .member-item {
         display: flex;
-        flex-direction: column;  // Changed from default flex to column
+        flex-direction: column;
         gap: 0.5rem;
       }
 
       .member-input-group {
         display: flex;
         gap: 0.5rem;
-        width: 100%;  // Added to ensure full width
+        width: 100%;
       }
 
       .member-input {
@@ -819,13 +822,13 @@ interface MediaItem {
       }
 
       .member-profile {
-        width: 100%;  // Added to ensure full width
+        width: 100%;
         display: flex;
         gap: 1rem;
         padding: 1rem;
         background: var(--surface-ground);
         border-radius: 4px;
-        margin-top: 0.5rem;  // Added space between input and profile
+        margin-top: 0.5rem;
       }
 
       .add-member-button {

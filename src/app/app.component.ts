@@ -8,7 +8,7 @@ import { AppLauncherComponent } from './components/app-launcher.component';
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, RouterLink, CommonModule, AppLauncherComponent],
+  imports: [RouterOutlet, CommonModule, AppLauncherComponent],
   template: `
     <header>
       <nav>
