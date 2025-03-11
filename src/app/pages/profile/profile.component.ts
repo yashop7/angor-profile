@@ -694,6 +694,7 @@ interface MediaItem {
         cursor: pointer;
         font-weight: bold;
         transition: all 0.2s ease;
+        color: var(--text); /* Add this line to make the color adapt to theme */
       }
 
       .tool-button:hover {
