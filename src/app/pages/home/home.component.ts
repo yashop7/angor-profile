@@ -25,16 +25,7 @@ import { Router } from '@angular/router';
       transition: all 0.2s ease;
     }
 
-    .profile-button {
-      cursor: pointer;
-      white-space: nowrap;
-      border: none;
-      width: fit-content;
-    }
 
-    .profile-button:disabled {
-      opacity: 0.5;
-    }
   `],
   template: `
     <section class="hero">

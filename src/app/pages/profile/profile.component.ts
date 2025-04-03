@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -79,417 +79,430 @@ interface MediaItem {
       </div>
     </section>
 
-    <div class="container">
-      <div class="tabs" [class.mobile]="isMobile">
-        <button
-          *ngFor="let tab of tabs"
-          [class.active]="activeTab === tab.id"
-          (click)="setActiveTab(tab.id)"
-        >
-          {{ tab.label }}
-        </button>
-      </div>
-
-      <div class="tab-content" [ngSwitch]="activeTab">
-        <div *ngSwitchCase="'profile'" class="profile-section">
-          <h2>Basic Information</h2>
-          <div class="form-grid">
-            <div class="form-group">
-              <label for="name">Username</label>
-              <input
-                id="name"
-                type="text"
-                [(ngModel)]="profile.name"
-                placeholder="Your username"
-              />
-            </div>
-
-            <div class="form-group">
-              <label for="displayName">Display Name</label>
-              <input
-                id="displayName"
-                type="text"
-                [(ngModel)]="profile.displayName"
-                placeholder="Your display name"
-              />
-            </div>
-
-            <div class="form-group full-width">
-              <label for="about">About</label>
-              <textarea
-                id="about"
-                [(ngModel)]="profile.about"
-                placeholder="Tell us about yourself"
-                rows="4"
-              ></textarea>
-            </div>
-
-            <div class="form-group full-width">
-              <label>Profile Picture</label>
-              <app-image-upload 
-                label="Profile Picture"
-                [imageUrl]="profile.picture"
-                (urlChanged)="profile.picture = $event"
-              ></app-image-upload>
-            </div>
-
-            <div class="form-group full-width">
-              <label>Banner Image</label>
-              <app-image-upload 
-                label="Banner Image"
-                [imageUrl]="profile.banner"
-                (urlChanged)="profile.banner = $event"
-              ></app-image-upload>
-            </div>
-
-            <div class="form-group">
-              <label for="nip05">NIP-05 Verification</label>
-              <input
-                id="nip05"
-                type="text"
-                [(ngModel)]="profile.nip05"
-                placeholder="you@example.com"
-              />
-            </div>
-
-            <div class="form-group">
-              <label for="lud16">Lightning Address</label>
-              <input
-                id="lud16"
-                type="text"
-                [(ngModel)]="profile.lud16"
-                placeholder="your@lightning.address"
-              />
-            </div>
-
-            <div class="form-group">
-              <label for="website">Website</label>
-              <input
-                id="website"
-                type="url"
-                [(ngModel)]="profile.website"
-                placeholder="https://your-website.com"
-              />
-            </div>
-          </div>
-        </div>
-
-        <div *ngSwitchCase="'project'" class="profile-section">
-          <h2>Project Description</h2>
-          <p class="helper-text">
-            Write a detailed description of your project. This will be displayed
-            as your main project content.
-          </p>
-
-          <div class="editor-container">
-            <div class="editor-toolbar">
-              <button
-                class="tool-button"
-                (click)="formatText('**', '**')"
-                title="Bold"
-              >
-                B
-              </button>
-              <button
-                class="tool-button"
-                (click)="formatText('*', '*')"
-                title="Italic"
-              >
-                I
-              </button>
-              <button
-                class="tool-button"
-                (click)="formatText('### ', '')"
-                title="Heading"
-              >
-                H
-              </button>
-              <button
-                class="tool-button"
-                (click)="formatText('- ', '')"
-                title="List Item"
-              >
-                •
-              </button>
-              <button
-                class="tool-button"
-                (click)="formatText('[', '](url)')"
-                title="Link"
-              >
-                🔗
-              </button>
-            </div>
-
-            <div class="textarea-wrapper">
-              <textarea
-                [(ngModel)]="projectContent.content"
-                placeholder="Write your project description here... Use Markdown for formatting."
-                rows="20"
-                (input)="onContentChange()"
-              ></textarea>
-
-              <div *ngIf="projectContent.lastUpdated" class="last-updated">
-                Last updated: {{ formatDate(projectContent.lastUpdated) }}
-              </div>
-            </div>
-
-            <div class="preview-toggle">
-              <button (click)="togglePreview()" class="secondary-button">
-                {{ showPreview ? 'Edit' : 'Preview' }}
-              </button>
-            </div>
-
-            <div *ngIf="showPreview" class="markdown-preview">
-              <!-- TODO: Add markdown preview rendering -->
-              <markdown [data]="projectContent.content"></markdown>
-              <!-- <pre>{{ projectContent.content }}</pre> -->
-            </div>
-          </div>
-        </div>
-
-        <div *ngSwitchCase="'faq'" class="profile-section">
-          <h2>Frequently Asked Questions</h2>
-          <p class="helper-text">
-            Add questions and answers that will help users understand your
-            project better.
-          </p>
-
-          <div class="faq-container">
-            <div
-              *ngFor="let faq of faqItems; trackBy: trackById"
-              class="faq-item"
+    @if (!profileFound() && !loading) {
+      <div class="container">
+        <div class="not-found-message">
+          <h2>Project not found...yet</h2>
+          <p>If you recently created a new Angor project, it might take a few minutes for it to be distributed and indexed on the decentralized infrastructure.</p>
+          <button 
+          (click)="reloadPage()" 
+              class="cta-button profile-button"
             >
-              <div class="faq-header">
-                <button
-                  class="delete-button"
-                  (click)="deleteFaqItem(faq.id)"
-                  title="Delete question"
-                >
-                  ×
-                </button>
-              </div>
+              Retry
+            </button>
+        </div>
+      </div>
+    } @else {
+      <div class="container">
+        <div class="tabs" [class.mobile]="isMobile">
+          <button
+            *ngFor="let tab of tabs"
+            [class.active]="activeTab === tab.id"
+            (click)="setActiveTab(tab.id)"
+          >
+            {{ tab.label }}
+          </button>
+        </div>
+
+        <div class="tab-content" [ngSwitch]="activeTab">
+          <div *ngSwitchCase="'profile'" class="profile-section">
+            <h2>Basic Information</h2>
+            <div class="form-grid">
               <div class="form-group">
-                <label>Question</label>
+                <label for="name">Username</label>
                 <input
+                  id="name"
                   type="text"
-                  [(ngModel)]="faq.question"
-                  placeholder="Enter your question"
+                  [(ngModel)]="profile.name"
+                  placeholder="Your username"
                 />
               </div>
+
               <div class="form-group">
-                <label>Answer</label>
+                <label for="displayName">Display Name</label>
+                <input
+                  id="displayName"
+                  type="text"
+                  [(ngModel)]="profile.displayName"
+                  placeholder="Your display name"
+                />
+              </div>
+
+              <div class="form-group full-width">
+                <label for="about">About</label>
                 <textarea
-                  [(ngModel)]="faq.answer"
+                  id="about"
+                  [(ngModel)]="profile.about"
+                  placeholder="Tell us about yourself"
                   rows="4"
-                  placeholder="Enter your answer"
                 ></textarea>
               </div>
-            </div>
 
-            <button class="add-faq-button" (click)="addFaqItem()">
-              + Add New Question
-            </button>
-          </div>
-        </div>
-
-        <div *ngSwitchCase="'members'" class="profile-section">
-          <h2>Team Members</h2>
-          <p class="helper-text">
-            Add Nostr public keys of team members, their profiles will be listed on the project page. This does not give them permissions to edit the project.
-          </p>
-
-          <div class="members-container">
-            <div
-              *ngFor="
-                let pubkey of members.pubkeys;
-                let i = index;
-                trackBy: trackByIndex
-              "
-              class="member-item"
-            >
-              <div class="member-input-group">
-                <input
-                  type="text"
-                  [(ngModel)]="members.pubkeys[i]"
-                  (ngModelChange)="onMemberKeyChange(i)"
-                  placeholder="npub..."
-                  class="member-input"
-                />
-                <button class="delete-button" (click)="removeMember(i)">×</button>
+              <div class="form-group full-width">
+                <label>Profile Picture</label>
+                <app-image-upload 
+                  label="Profile Picture"
+                  [imageUrl]="profile.picture"
+                  (urlChanged)="profile.picture = $event"
+                ></app-image-upload>
               </div>
 
-              <div *ngIf="memberProfiles[pubkey]" class="member-profile">
-                <img 
-                  *ngIf="memberProfiles[pubkey].picture"
-                  [src]="memberProfiles[pubkey].picture" 
-                  class="member-avatar"
-                  alt="Profile picture"
+              <div class="form-group full-width">
+                <label>Banner Image</label>
+                <app-image-upload 
+                  label="Banner Image"
+                  [imageUrl]="profile.banner"
+                  (urlChanged)="profile.banner = $event"
+                ></app-image-upload>
+              </div>
+
+              <div class="form-group">
+                <label for="nip05">NIP-05 Verification</label>
+                <input
+                  id="nip05"
+                  type="text"
+                  [(ngModel)]="profile.nip05"
+                  placeholder="you@example.com"
                 />
-                <div class="member-info">
-                  <div class="member-name">
-                    {{ memberProfiles[pubkey].displayName || memberProfiles[pubkey].name }}
-                  </div>
-                  <div class="member-nip05" *ngIf="memberProfiles[pubkey].nip05">
-                    ✓ {{ memberProfiles[pubkey].nip05 }}
-                  </div>
-                  <div class="member-about" *ngIf="memberProfiles[pubkey].about">
-                    {{ memberProfiles[pubkey].about }}
+              </div>
+
+              <div class="form-group">
+                <label for="lud16">Lightning Address</label>
+                <input
+                  id="lud16"
+                  type="text"
+                  [(ngModel)]="profile.lud16"
+                  placeholder="your@lightning.address"
+                />
+              </div>
+
+              <div class="form-group">
+                <label for="website">Website</label>
+                <input
+                  id="website"
+                  type="url"
+                  [(ngModel)]="profile.website"
+                  placeholder="https://your-website.com"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div *ngSwitchCase="'project'" class="profile-section">
+            <h2>Project Description</h2>
+            <p class="helper-text">
+              Write a detailed description of your project. This will be displayed
+              as your main project content.
+            </p>
+
+            <div class="editor-container">
+              <div class="editor-toolbar">
+                <button
+                  class="tool-button"
+                  (click)="formatText('**', '**')"
+                  title="Bold"
+                >
+                  B
+                </button>
+                <button
+                  class="tool-button"
+                  (click)="formatText('*', '*')"
+                  title="Italic"
+                >
+                  I
+                </button>
+                <button
+                  class="tool-button"
+                  (click)="formatText('### ', '')"
+                  title="Heading"
+                >
+                  H
+                </button>
+                <button
+                  class="tool-button"
+                  (click)="formatText('- ', '')"
+                  title="List Item"
+                >
+                  •
+                </button>
+                <button
+                  class="tool-button"
+                  (click)="formatText('[', '](url)')"
+                  title="Link"
+                >
+                  🔗
+                </button>
+              </div>
+
+              <div class="textarea-wrapper">
+                <textarea
+                  [(ngModel)]="projectContent.content"
+                  placeholder="Write your project description here... Use Markdown for formatting."
+                  rows="20"
+                  (input)="onContentChange()"
+                ></textarea>
+
+                <div *ngIf="projectContent.lastUpdated" class="last-updated">
+                  Last updated: {{ formatDate(projectContent.lastUpdated) }}
+                </div>
+              </div>
+
+              <div class="preview-toggle">
+                <button (click)="togglePreview()" class="secondary-button">
+                  {{ showPreview ? 'Edit' : 'Preview' }}
+                </button>
+              </div>
+
+              <div *ngIf="showPreview" class="markdown-preview">
+                <!-- TODO: Add markdown preview rendering -->
+                <markdown [data]="projectContent.content"></markdown>
+                <!-- <pre>{{ projectContent.content }}</pre> -->
+              </div>
+            </div>
+          </div>
+
+          <div *ngSwitchCase="'faq'" class="profile-section">
+            <h2>Frequently Asked Questions</h2>
+            <p class="helper-text">
+              Add questions and answers that will help users understand your
+              project better.
+            </p>
+
+            <div class="faq-container">
+              <div
+                *ngFor="let faq of faqItems; trackBy: trackById"
+                class="faq-item"
+              >
+                <div class="faq-header">
+                  <button
+                    class="delete-button"
+                    (click)="deleteFaqItem(faq.id)"
+                    title="Delete question"
+                  >
+                    ×
+                  </button>
+                </div>
+                <div class="form-group">
+                  <label>Question</label>
+                  <input
+                    type="text"
+                    [(ngModel)]="faq.question"
+                    placeholder="Enter your question"
+                  />
+                </div>
+                <div class="form-group">
+                  <label>Answer</label>
+                  <textarea
+                    [(ngModel)]="faq.answer"
+                    rows="4"
+                    placeholder="Enter your answer"
+                  ></textarea>
+                </div>
+              </div>
+
+              <button class="add-faq-button" (click)="addFaqItem()">
+                + Add New Question
+              </button>
+            </div>
+          </div>
+
+          <div *ngSwitchCase="'members'" class="profile-section">
+            <h2>Team Members</h2>
+            <p class="helper-text">
+              Add Nostr public keys of team members, their profiles will be listed on the project page. This does not give them permissions to edit the project.
+            </p>
+
+            <div class="members-container">
+              <div
+                *ngFor="
+                  let pubkey of members.pubkeys;
+                  let i = index;
+                  trackBy: trackByIndex
+                "
+                class="member-item"
+              >
+                <div class="member-input-group">
+                  <input
+                    type="text"
+                    [(ngModel)]="members.pubkeys[i]"
+                    (ngModelChange)="onMemberKeyChange(i)"
+                    placeholder="npub..."
+                    class="member-input"
+                  />
+                  <button class="delete-button" (click)="removeMember(i)">×</button>
+                </div>
+
+                <div *ngIf="memberProfiles[pubkey]" class="member-profile">
+                  <img 
+                    *ngIf="memberProfiles[pubkey].picture"
+                    [src]="memberProfiles[pubkey].picture" 
+                    class="member-avatar"
+                    alt="Profile picture"
+                  />
+                  <div class="member-info">
+                    <div class="member-name">
+                      {{ memberProfiles[pubkey].displayName || memberProfiles[pubkey].name }}
+                    </div>
+                    <div class="member-nip05" *ngIf="memberProfiles[pubkey].nip05">
+                      ✓ {{ memberProfiles[pubkey].nip05 }}
+                    </div>
+                    <div class="member-about" *ngIf="memberProfiles[pubkey].about">
+                      {{ memberProfiles[pubkey].about }}
+                    </div>
                   </div>
                 </div>
               </div>
+
+              <button class="add-member-button" (click)="addMember()">
+                + Add Team Member
+              </button>
             </div>
-
-            <button class="add-member-button" (click)="addMember()">
-              + Add Team Member
-            </button>
           </div>
-        </div>
 
-        <div *ngSwitchCase="'links'" class="profile-section">
-          <h2>External Identities</h2>
-          <p class="helper-text">
-            Link your external identities and social media accounts. Add proof links to verify ownership.
-          </p>
+          <div *ngSwitchCase="'links'" class="profile-section">
+            <h2>External Identities</h2>
+            <p class="helper-text">
+              Link your external identities and social media accounts. Add proof links to verify ownership.
+            </p>
 
-          <div class="links-container">
-            <div *ngFor="let link of profile.identityTags; let i = index" class="link-item">
-              <div class="link-inputs">
-                <select [(ngModel)]="link.platform" class="platform-select" autocomplete="off">
-                  <option value="">Select Platform</option>
-                  <option *ngFor="let platform of platformSuggestions" [value]="platform">
-                    {{platform}}
-                  </option>
-                  <option value="custom">Custom</option>
+            <div class="links-container">
+              <div *ngFor="let link of profile.identityTags; let i = index" class="link-item">
+                <div class="link-inputs">
+                  <select [(ngModel)]="link.platform" class="platform-select" autocomplete="off">
+                    <option value="">Select Platform</option>
+                    <option *ngFor="let platform of platformSuggestions" [value]="platform">
+                      {{platform}}
+                    </option>
+                    <option value="custom">Custom</option>
+                  </select>
+                  
+                  <input
+                    type="text"
+                    [(ngModel)]="link.identity"
+                    placeholder="Username or ID"
+                    class="identity-input"
+                    autocomplete="off"
+                  />
+                  
+                  <input
+                    type="text"
+                    [(ngModel)]="link.proof"
+                    placeholder="Proof URL or identifier"
+                    class="proof-input"
+                    autocomplete="off"
+                  />
+                </div>
+                
+                <button class="delete-button" (click)="removeIdentityLink(i)">×</button>
+              </div>
+
+              <button class="add-link-button" (click)="addIdentityLink()">
+                + Add Identity Link
+              </button>
+            </div>
+          </div>
+
+          <div *ngSwitchCase="'media'" class="profile-section">
+            <h2>Media Gallery</h2>
+            <p class="helper-text">
+              Add links to images or videos that showcase your project.
+            </p>
+
+            <div class="media-container">
+              <div class="media-input">
+                <input
+                  type="text"
+                  [(ngModel)]="newMediaUrl"
+                  placeholder="Enter media URL (image or video)"
+                  class="media-url-input"
+                />
+                <select [(ngModel)]="newMediaType" class="media-type-select">
+                  <option value="image">Image</option>
+                  <option value="video">Video</option>
                 </select>
-                
-                <input
-                  type="text"
-                  [(ngModel)]="link.identity"
-                  placeholder="Username or ID"
-                  class="identity-input"
-                  autocomplete="off"
-                />
-                
-                <input
-                  type="text"
-                  [(ngModel)]="link.proof"
-                  placeholder="Proof URL or identifier"
-                  class="proof-input"
-                  autocomplete="off"
-                />
+                <button class="primary-button" (click)="addMedia()">Add Media</button>
               </div>
-              
-              <button class="delete-button" (click)="removeIdentityLink(i)">×</button>
-            </div>
 
-            <button class="add-link-button" (click)="addIdentityLink()">
-              + Add Identity Link
+              <div cdkDropList class="media-grid" (cdkDropListDropped)="dropMedia($event)">
+                <div *ngFor="let item of mediaItems; let i = index" 
+                     class="media-item" cdkDrag>
+                  <div class="media-preview">
+                    <img *ngIf="item.type === 'image'" [src]="item.url" alt="Media preview">
+                    <video *ngIf="item.type === 'video'" [src]="item.url" controls></video>
+                  </div>
+                  <div class="media-controls">
+                    <button class="move-button" cdkDragHandle>⋮⋮</button>
+                    <button class="delete-button" (click)="removeMedia(i)">×</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div *ngSwitchCase="'relays'" class="profile-section">
+            <h2>Relay Servers</h2>
+            <p class="helper-text">
+              Manage the relay servers that your profile will connect to. These relays will be used to publish and retrieve your project data.
+            </p>
+
+            <div class="relays-container">
+              <div class="relay-input">
+                <input
+                  type="text"
+                  [(ngModel)]="newRelayUrl"
+                  placeholder="wss://relay.example.com"
+                  class="relay-url-input"
+                  (keyup.enter)="addRelay()"
+                />
+                <button class="primary-button" (click)="addRelay()">Add Relay</button>
+              </div>
+
+              <div class="relay-list">
+                <div *ngFor="let relay of relays; let i = index" class="relay-item">
+                  <span class="relay-url">{{relay}}</span>
+                  <button class="delete-button" (click)="removeRelay(i)" 
+                          [disabled]="relays.length === 1">×</button>
+                </div>
+              </div>
+
+              <div class="relay-actions">
+                <button class="primary-button" (click)="applyAndConnect()">Apply and Connect</button>
+              </div>
+            </div>
+          </div>
+
+          <div *ngIf="isMobile" class="mobile-navigation">
+            <button 
+              class="nav-button previous" 
+              (click)="previousTab()"
+              *ngIf="activeTab !== tabs[0].id">
+              ← Previous
+            </button>
+            <button 
+              class="nav-button next" 
+              (click)="nextTab()"
+              *ngIf="activeTab !== tabs[tabs.length-1].id">
+              Next →
             </button>
           </div>
         </div>
 
-        <div *ngSwitchCase="'media'" class="profile-section">
-          <h2>Media Gallery</h2>
-          <p class="helper-text">
-            Add links to images or videos that showcase your project.
-          </p>
-
-          <div class="media-container">
-            <div class="media-input">
-              <input
-                type="text"
-                [(ngModel)]="newMediaUrl"
-                placeholder="Enter media URL (image or video)"
-                class="media-url-input"
-              />
-              <select [(ngModel)]="newMediaType" class="media-type-select">
-                <option value="image">Image</option>
-                <option value="video">Video</option>
-              </select>
-              <button class="primary-button" (click)="addMedia()">Add Media</button>
-            </div>
-
-            <div cdkDropList class="media-grid" (cdkDropListDropped)="dropMedia($event)">
-              <div *ngFor="let item of mediaItems; let i = index" 
-                   class="media-item" cdkDrag>
-                <div class="media-preview">
-                  <img *ngIf="item.type === 'image'" [src]="item.url" alt="Media preview">
-                  <video *ngIf="item.type === 'video'" [src]="item.url" controls></video>
-                </div>
-                <div class="media-controls">
-                  <button class="move-button" cdkDragHandle>⋮⋮</button>
-                  <button class="delete-button" (click)="removeMedia(i)">×</button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div *ngSwitchCase="'relays'" class="profile-section">
-          <h2>Relay Servers</h2>
-          <p class="helper-text">
-            Manage the relay servers that your profile will connect to. These relays will be used to publish and retrieve your project data.
-          </p>
-
-          <div class="relays-container">
-            <div class="relay-input">
-              <input
-                type="text"
-                [(ngModel)]="newRelayUrl"
-                placeholder="wss://relay.example.com"
-                class="relay-url-input"
-                (keyup.enter)="addRelay()"
-              />
-              <button class="primary-button" (click)="addRelay()">Add Relay</button>
-            </div>
-
-            <div class="relay-list">
-              <div *ngFor="let relay of relays; let i = index" class="relay-item">
-                <span class="relay-url">{{relay}}</span>
-                <button class="delete-button" (click)="removeRelay(i)" 
-                        [disabled]="relays.length === 1">×</button>
-              </div>
-            </div>
-
-            <div class="relay-actions">
-              <button class="primary-button" (click)="applyAndConnect()">Apply and Connect</button>
-            </div>
-          </div>
-        </div>
-
-        <div *ngIf="isMobile" class="mobile-navigation">
-          <button 
-            class="nav-button previous" 
-            (click)="previousTab()"
-            *ngIf="activeTab !== tabs[0].id">
-            ← Previous
+        <div class="actions">
+          <button class="secondary-button" (click)="resetChanges()">
+            Reset Changes
           </button>
-          <button 
-            class="nav-button next" 
-            (click)="nextTab()"
-            *ngIf="activeTab !== tabs[tabs.length-1].id">
-            Next →
+          <button class="primary-button" (click)="saveProfile()">
+            Save Profile
           </button>
         </div>
       </div>
-
-      <div class="actions">
-        <button class="secondary-button" (click)="resetChanges()">
-          Reset Changes
-        </button>
-        <button class="primary-button" (click)="saveProfile()">
-          Save Profile
-        </button>
-      </div>
-    </div>
+    }
 
     <app-signing-dialog
       [visible]="showSigningDialog"
       [dataToSign]="dataToSign"
       (sign)="handleSigning($event)"
     ></app-signing-dialog>
-
-
   `,
   styles: [
     `
@@ -1066,6 +1079,25 @@ interface MediaItem {
         -webkit-box-orient: vertical;
         overflow: hidden;
       }
+
+      .not-found-message {
+        text-align: center;
+        padding: 4rem 2rem;
+        background: var(--surface-card);
+        border-radius: 8px;
+        margin: 2rem;
+      }
+      
+      .not-found-message h2 {
+        font-size: 1.8rem;
+        margin-bottom: 1rem;
+        color: var(--text);
+      }
+      
+      .not-found-message p {
+        color: var(--text-secondary);
+        font-size: 1.1rem;
+      }
     `,
   ],
 })
@@ -1076,6 +1108,7 @@ export class ProfileComponent implements OnInit {
   pubkey!: string;
   npub!: string;
   loading = true;
+  profileFound = signal(false);
 
   tabs = [
     { id: 'profile', label: 'Profile' },
@@ -1148,6 +1181,10 @@ export class ProfileComponent implements OnInit {
     window.addEventListener('resize', () => this.checkScreenSize());
   }
 
+  reloadPage(): void {
+    window.location.reload();
+  }
+
   private checkScreenSize() {
     this.isMobile = window.innerWidth < 768;
   }
@@ -1173,6 +1210,8 @@ export class ProfileComponent implements OnInit {
   ngOnInit() {
     this.route.paramMap.subscribe((params) => {
       const pubkey = params.get('pubkey');
+
+      try {
       if (pubkey) {
         if (pubkey.startsWith('npub')) {
           this.user = new NDKUser({
@@ -1190,6 +1229,11 @@ export class ProfileComponent implements OnInit {
         this.pubkey = this.user.pubkey;
 
         this.loadProfileData(this.pubkey);
+      }} catch(err) {
+        // Can happen if the pubkey is invalid or malformed
+        console.error(err);
+        this.profileFound.set(false);
+        this.loading = false;
       }
     });
 
@@ -1202,6 +1246,7 @@ export class ProfileComponent implements OnInit {
     try {
       const profileData = await this.relayService.loadProfileMetadata(pubkey);
       if (profileData) {
+        this.profileFound.set(true);
         this.profile = {
           name: profileData.name || '',
           displayName: profileData.displayName || '',
@@ -1232,6 +1277,8 @@ export class ProfileComponent implements OnInit {
         }
 
         this.profile.identityTags = identityTags;
+      } else {
+        this.profileFound.set(false);
       }
 
       const projectData = await this.relayService.loadProjectContent(pubkey);
@@ -1260,6 +1307,7 @@ export class ProfileComponent implements OnInit {
       }
     } catch (error) {
       console.error('Error loading profile data:', error);
+      this.profileFound.set(false);
     } finally {
       this.loading = false;
     }
