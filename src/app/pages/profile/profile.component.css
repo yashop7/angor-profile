@@ -1,0 +1,594 @@
+.tabs {
+    display: flex;
+    gap: 1rem;
+    margin: 2rem;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 0;
+}
+
+.tabs button {
+    background: none;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    cursor: pointer;
+    color: var(--text);
+    font-size: 1rem;
+    position: relative;
+    transition: all 0.3s ease;
+    opacity: 0.7;
+}
+
+.tabs button:hover {
+    opacity: 1;
+    background: var(--surface-hover);
+}
+
+.tabs button.active {
+    color: var(--accent);
+    opacity: 1;
+}
+
+.tabs button.active::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--accent);
+}
+
+.tabs.mobile {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.tabs.mobile button {
+    font-size: 0.9rem;
+    padding: 0.5rem 1rem;
+}
+
+@media (max-width: 768px) {
+    .tabs {
+        display: none;
+    }
+
+    .profile-section {
+        margin: 1rem;
+        padding: 1rem;
+    }
+
+    .mobile-navigation {
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+        margin-top: 2rem;
+        padding: 0 1rem;
+    }
+
+    .nav-button {
+        padding: 0.75rem 1.5rem;
+        background: var(--surface-card);
+        border: 1px solid var(--border);
+        border-radius: 4px;
+        color: var(--text);
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .nav-button:hover {
+        background: var(--surface-hover);
+        transform: translateY(-1px);
+    }
+
+    .nav-button.previous {
+        padding-left: 1rem;
+    }
+
+    .nav-button.next {
+        padding-right: 1rem;
+    }
+}
+
+/* Add current step indicator for mobile */
+.mobile-step-indicator {
+    text-align: center;
+    color: var(--text-secondary);
+    margin: 1rem 0;
+    font-size: 0.9rem;
+}
+
+.profile-section {
+    background: var(--surface-card);
+    padding: 2rem;
+    border-radius: 8px;
+    margin: 2rem;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.form-group.full-width {
+    grid-column: 1 / -1;
+}
+
+label {
+    font-weight: 500;
+    color: var(--text);
+}
+
+input,
+textarea {
+    padding: 0.75rem;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: var(--surface-ground);
+    color: var(--text);
+    font-size: 1rem;
+}
+
+input:focus,
+textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+}
+
+.actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin: 2rem;
+}
+
+.primary-button,
+.secondary-button {
+    padding: 0.75rem 1.5rem;
+    border-radius: 4px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.primary-button {
+    background: var(--accent);
+    color: white;
+    border: none;
+}
+
+.secondary-button {
+    background: var(--surface-card);
+    color: var(--text);
+    border: 1px solid var(--border);
+}
+
+.primary-button:hover,
+.secondary-button:hover {
+    transform: translateY(-1px);
+}
+
+.editor-container {
+    margin-top: 1.5rem;
+}
+
+.editor-toolbar {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    padding: 0.5rem;
+    background: var(--surface-ground);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+}
+
+.tool-button {
+    padding: 0.5rem 1rem;
+    background: var(--surface-card);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.2s ease;
+    color: var(--text);
+    /* Add this line to make the color adapt to theme */
+}
+
+.tool-button:hover {
+    background: var(--surface-hover);
+}
+
+.textarea-wrapper {
+    position: relative;
+}
+
+textarea {
+    width: 100%;
+    min-height: 200px;
+    /* Reduced height */
+    padding: 1rem;
+    font-family: monospace;
+    line-height: 1.6;
+    resize: vertical;
+}
+
+.last-updated {
+    position: absolute;
+    bottom: 0.5rem;
+    right: 0.5rem;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    background: var(--surface-ground);
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+}
+
+.preview-toggle {
+    margin: 1rem 0;
+    text-align: right;
+}
+
+.markdown-preview {
+    padding: 1rem;
+    background: var(--surface-ground);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    min-height: 400px;
+}
+
+.helper-text {
+    color: var(--text-secondary);
+    margin-bottom: 1rem;
+}
+
+.faq-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+}
+
+.faq-item {
+    background: var(--surface-ground);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.5rem;
+    position: relative;
+}
+
+.faq-header {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 1rem;
+}
+
+.delete-button {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0.25rem 0.5rem;
+    line-height: 1;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+.delete-button:hover {
+    background: var(--surface-hover);
+    color: var(--accent);
+}
+
+.add-faq-button {
+    background: var(--surface-card);
+    border: 2px dashed var(--border);
+    color: var(--text);
+    padding: 1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: all 0.2s ease;
+    width: 100%;
+}
+
+.add-faq-button:hover {
+    background: var(--surface-hover);
+    border-color: var(--accent);
+    color: var (--accent);
+}
+
+.members-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+.member-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.member-input-group {
+    display: flex;
+    gap: 0.5rem;
+    width: 100%;
+}
+
+.member-input {
+    flex: 1;
+}
+
+.member-profile {
+    width: 100%;
+    display: flex;
+    gap: 1rem;
+    padding: 1rem;
+    background: var(--surface-ground);
+    border-radius: 4px;
+    margin-top: 0.5rem;
+}
+
+.add-member-button {
+    background: var(--surface-card);
+    border: 2px dashed var(--border);
+    color: var(--text);
+    padding: 1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: all 0.2s ease;
+    width: 100%;
+    margin-top: 1rem;
+}
+
+.add-member-button:hover {
+    background: var(--surface-hover);
+    border-color: var(--accent);
+    color: var(--accent);
+}
+
+.links-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+.link-item {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    background: var(--surface-ground);
+    padding: 1rem;
+    border-radius: 4px;
+}
+
+.link-inputs {
+    display: flex;
+    gap: 0.5rem;
+    flex: 1;
+}
+
+.platform-select {
+    width: 150px;
+}
+
+.identity-input,
+.proof-input {
+    flex: 1;
+}
+
+.add-link-button {
+    background: var(--surface-card);
+    border: 2px dashed var(--border);
+    color: var(--text);
+    padding: 1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: all 0.2s ease;
+    width: 100%;
+    margin-top: 1rem;
+}
+
+.add-link-button:hover {
+    background: var(--surface-hover);
+    border-color: var (--accent);
+    color: var(--accent);
+}
+
+.media-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.media-input {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.media-url-input {
+    flex: 1;
+}
+
+.media-type-select {
+    width: 120px;
+}
+
+.media-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.media-item {
+    position: relative;
+    background: var(--surface-ground);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.media-preview {
+    aspect-ratio: 16/9;
+    overflow: hidden;
+}
+
+.media-preview img,
+.media-preview video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.media-controls {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    display: flex;
+    gap: 0.5rem;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.media-item:hover .media-controls {
+    opacity: 1;
+}
+
+.media-controls button {
+    background: rgba(0, 0, 0, 0.5);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 0.25rem 0.5rem;
+    cursor: pointer;
+}
+
+.media-controls button:hover {
+    background: rgba(0, 0, 0, 0.7);
+}
+
+.relays-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+}
+
+.relay-input {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.relay-url-input {
+    flex: 1;
+}
+
+.relay-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.relay-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--surface-ground);
+    padding: 0.75rem 1rem;
+    border-radius: 4px;
+}
+
+.relay-url {
+    font-family: monospace;
+    word-break: break-all;
+}
+
+.relay-item .delete-button[disabled] {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+.relay-actions {
+    margin-top: 1rem;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.member-input-group {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.member-profile {
+    display: flex;
+    gap: 1rem;
+    padding: 1rem;
+    background: var(--surface-ground);
+    border-radius: 4px;
+    margin-bottom: 1rem;
+}
+
+.member-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.member-info {
+    flex: 1;
+}
+
+.member-name {
+    font-weight: 500;
+    margin-bottom: 0.25rem;
+}
+
+.member-nip05 {
+    font-size: 0.9rem;
+    color: var(--accent);
+    margin-bottom: 0.25rem;
+}
+
+.member-about {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.not-found-message {
+    text-align: center;
+    padding: 4rem 2rem;
+    background: var(--surface-card);
+    border-radius: 8px;
+    margin: 2rem;
+}
+
+.not-found-message h2 {
+    font-size: 1.8rem;
+    margin-bottom: 1rem;
+    color: var(--text);
+}
+
+.not-found-message p {
+    color: var(--text-secondary);
+    font-size: 1.1rem;
+}
