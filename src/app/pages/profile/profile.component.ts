@@ -61,7 +61,7 @@ interface MediaItem {
     MarkdownModule
   ],
   templateUrl: './profile.component.html',
-  styleUrl: './profile.component.scss',
+  styleUrl: './profile.component.css',
 })
 export class ProfileComponent implements OnInit {
   private route = inject(ActivatedRoute);
