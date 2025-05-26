@@ -752,6 +752,54 @@ export class RelayService {
     }
   }
 
+  // Fetch all badge awards for multiple members from a specific issuer
+  async fetchMemberBadgeAwards(issuerPubkey: string, memberPubkeys: string[]): Promise<{ [pubkey: string]: boolean }> {
+    const results: { [pubkey: string]: boolean } = {};
+    
+    if (memberPubkeys.length === 0) return results;
+    
+    try {
+      const ndk = await this.ensureConnected();
+      
+      const filter = {
+        kinds: [8],
+        authors: [issuerPubkey],
+        '#p': memberPubkeys
+      };
+      
+      const events = await ndk.fetchEvents(filter);
+      
+      // Initialize all members as not having badges
+      memberPubkeys.forEach(pubkey => {
+        results[pubkey] = false;
+      });
+      
+      // Check each event to see if it's awarding the member badge
+      for (const event of events) {
+        const pTags = event.tags.filter(tag => tag[0] === 'p');
+        const aTags = event.tags.filter(tag => tag[0] === 'a');
+        
+        // Check if this is the angor-member badge
+        const isAngorMemberBadge = aTags.some(tag => 
+          tag[1] && tag[1].includes(':angor-project-member')
+        );
+        
+        if (isAngorMemberBadge) {
+          pTags.forEach(pTag => {
+            if (pTag[1] && results.hasOwnProperty(pTag[1])) {
+              results[pTag[1]] = true;
+            }
+          });
+        }
+      }
+      
+      return results;
+    } catch (error) {
+      console.error('Error fetching member badge awards:', error);
+      return results;
+    }
+  }
+
   private signEvent(event: any, privateKey: string) {
     const eventData = {
       ...event,

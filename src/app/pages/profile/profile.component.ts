@@ -15,6 +15,7 @@ import NDK, {
 import { CdkDragDrop, DragDropModule, moveItemInArray } from '@angular/cdk/drag-drop';
 import { ImageUploadComponent } from '../../components/image-upload.component';
 import { MarkdownModule } from 'ngx-markdown';
+import { nip19 } from "nostr-tools";
 
 export interface NostrProfile {
   name: string;
@@ -268,6 +269,9 @@ export class ProfileComponent implements OnInit {
         this.members = {
           pubkeys: membersData.pubkeys || [],
         };
+        
+        // Load badge awards for all members
+        await this.loadMemberBadgeAwards();
       }
 
       const mediaData = await this.relayService.loadMediaContent(pubkey);
@@ -292,11 +296,12 @@ export class ProfileComponent implements OnInit {
       if (validPubkeys.length > 0) {
         const profiles = await this.relayService.fetchMemberProfiles(validPubkeys);
         
-        profiles.forEach(async profile => {
+        profiles.forEach(profile => {
           this.memberProfiles[profile.npub] = profile;
-          // Check badge status for each member
-          await this.checkMemberBadge(profile.pubkey);
         });
+        
+        // Ensure badge awards are loaded
+        await this.loadMemberBadgeAwards();
       }
 
     }
@@ -378,7 +383,7 @@ export class ProfileComponent implements OnInit {
 
   async checkMemberBadge(pubkey: string) {
     try {
-      const badgeDefinitionId = `30009:${this.pubkey}:angor-member`;
+      const badgeDefinitionId = `30009:${this.pubkey}:angor-project-member`;
       const hasBeenAwarded = await this.relayService.checkBadgeAwarded(
         this.pubkey,
         badgeDefinitionId,
@@ -388,6 +393,46 @@ export class ProfileComponent implements OnInit {
       this.memberBadges[pubkey] = hasBeenAwarded;
     } catch (error) {
       console.error('Error checking badge status:', error);
+    }
+  }
+
+  // Add new method to load badge awards for all members at once
+  async loadMemberBadgeAwards() {
+    if (!this.members.pubkeys || this.members.pubkeys.length === 0) {
+      return;
+    }
+
+    try {
+      // Convert npub to pubkey if needed and filter valid pubkeys
+      const validPubkeys = this.members.pubkeys
+        .filter(pk => pk && pk.length > 0)
+        .map(pk => {
+          try {
+            // Check if the pubkey starts with 'npub'
+            if (pk.startsWith('npub')) {
+              const decoded = nip19.decode(pk);
+              return decoded.data as string;
+            }
+            return pk;
+          } catch (error) {
+            console.error('Error decoding pubkey:', pk, error);
+            return null;
+          }
+        })
+        .filter(pk => pk !== null) as string[];
+
+      if (validPubkeys.length === 0) return;
+
+      // Fetch badge awards for all members at once
+      const badgeAwards = await this.relayService.fetchMemberBadgeAwards(
+        this.pubkey,
+        validPubkeys
+      );
+
+      // Update memberBadges with the results
+      this.memberBadges = { ...this.memberBadges, ...badgeAwards };
+    } catch (error) {
+      console.error('Error loading member badge awards:', error);
     }
   }
 
