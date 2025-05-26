@@ -3,7 +3,7 @@ import { ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { BreadcrumbComponent } from '../../components/breadcrumb.component';
-import { FaqItem, RelayService, MemberProfile } from '../../services/relay.service';
+import { FaqItem, RelayService, MemberProfile, BadgeAward } from '../../services/relay.service';
 import { SigningDialogComponent } from '../../components/signing-dialog.component';
 import NDK, {
   calculateRelaySetFromEvent,
@@ -126,6 +126,9 @@ export class ProfileComponent implements OnInit {
   showPreview = false;
   showSigningDialog = false;
   dataToSign: any = null;
+  signingDialogTitle = '';
+  signingDialogPurpose: 'profile' | 'badge' = 'profile';
+  showDataPreview = true;
   user: NDKUser | null = null;
 
   // Add new property for relay management
@@ -135,6 +138,10 @@ export class ProfileComponent implements OnInit {
   isMobile = false;
 
   memberProfiles: { [key: string]: MemberProfile } = {};
+
+  // Track badges awarded to members
+  memberBadges: { [pubkey: string]: boolean } = {};
+  issuingBadge: { [pubkey: string]: boolean } = {};
 
   constructor() {
     // Initialize with empty states
@@ -285,8 +292,10 @@ export class ProfileComponent implements OnInit {
       if (validPubkeys.length > 0) {
         const profiles = await this.relayService.fetchMemberProfiles(validPubkeys);
         
-        profiles.forEach(profile => {
+        profiles.forEach(async profile => {
           this.memberProfiles[profile.npub] = profile;
+          // Check badge status for each member
+          await this.checkMemberBadge(profile.pubkey);
         });
       }
 
@@ -360,7 +369,53 @@ export class ProfileComponent implements OnInit {
       const profiles = await this.relayService.fetchMemberProfiles([pubkey]);
       if (profiles.length > 0) {
         this.memberProfiles[pubkey] = profiles[0];
+        
+        // Check if badge has been awarded to this member
+        await this.checkMemberBadge(pubkey);
       }
+    }
+  }
+
+  async checkMemberBadge(pubkey: string) {
+    try {
+      const badgeDefinitionId = `30009:${this.pubkey}:angor-member`;
+      const hasBeenAwarded = await this.relayService.checkBadgeAwarded(
+        this.pubkey,
+        badgeDefinitionId,
+        pubkey
+      );
+      
+      this.memberBadges[pubkey] = hasBeenAwarded;
+    } catch (error) {
+      console.error('Error checking badge status:', error);
+    }
+  }
+
+  async issueBadge(memberPubkey: string) {
+    try {
+      if (this.issuingBadge[memberPubkey]) return;
+      
+      this.issuingBadge[memberPubkey] = true;
+      
+      // Show signing dialog for badge issuance
+      const memberProfile = Object.values(this.memberProfiles).find(p => p.pubkey === memberPubkey);
+      const displayName = memberProfile ? (memberProfile.displayName || memberProfile.name || memberPubkey) : memberPubkey;
+      
+      this.dataToSign = {
+        recipient: displayName,
+        badgeName: "Angor Project Member",
+        badgeSlug: "angor-project-member",
+        memberPubkey: memberPubkey
+      };
+      
+      this.signingDialogTitle = 'Issue Badge';
+      this.signingDialogPurpose = 'badge';
+      this.showDataPreview = true;
+      this.showSigningDialog = true;
+    } catch (error) {
+      console.error('Error preparing badge issuance:', error);
+      this.issuingBadge[memberPubkey] = false;
+      alert('Failed to prepare badge issuance. Please try again.');
     }
   }
 
@@ -448,6 +503,9 @@ export class ProfileComponent implements OnInit {
       media: this.mediaItems
     };
 
+    this.signingDialogTitle = 'Save Profile Changes';
+    this.signingDialogPurpose = 'profile';
+    this.showDataPreview = true;
     this.showSigningDialog = true;
   }
 
@@ -455,38 +513,75 @@ export class ProfileComponent implements OnInit {
     this.showSigningDialog = false;
 
     if (!result.signed) {
+      // If this was a badge issuance that was cancelled, reset the issuingBadge flag
+      if (this.signingDialogPurpose === 'badge' && this.dataToSign?.memberPubkey) {
+        this.issuingBadge[this.dataToSign.memberPubkey] = false;
+      }
       return;
     }
 
     try {
       await this.relayService.ensureConnected();
-
-      const nip07signer = new NDKNip07Signer();
-      this.relayService.ndk!.signer = nip07signer;
-
-      const events = this.relayService.createEventsFromData(
-        this.pubkey!,
-        this.dataToSign
-      );
-
+      
       if (result.key === 'extension') {
-        for (const event of events) {
-          const ndkEvent = new NDKEvent(this.relayService.ndk!, event);
-          const published = await ndkEvent.publish();
-        }
+        const nip07signer = new NDKNip07Signer();
+        this.relayService.ndk!.signer = nip07signer;
       } else if (result.key) {
         this.relayService.ndk!.signer = new NDKPrivateKeySigner(result.key);
+      } else {
+        throw new Error('No signing method provided');
+      }
+
+      if (this.signingDialogPurpose === 'badge') {
+        const memberPubkey = this.dataToSign.memberPubkey;
+        
+        // Create or find the badge definition
+        const badgeDefinitionId = await this.relayService.createOrFindBadgeDefinition(
+          this.pubkey,
+          {
+            name: "Angor Project Member",
+            slug: "angor-project-member",
+            description: "This badge recognizes members of an Angor project team",
+            image: "https://angor.io/badges/badge-member.webp",
+            thumb: "https://angor.io/badges/badge-member-thumb.webp"
+          }
+        );
+        
+        // Issue badge to the member
+        await this.relayService.awardBadge(
+          this.pubkey,
+          badgeDefinitionId,
+          memberPubkey
+        );
+        
+        // Update badge status
+        this.memberBadges[memberPubkey] = true;
+        this.issuingBadge[memberPubkey] = false;
+        
+        alert('Badge issued successfully!');
+      } else {
+        // Handle profile data saving
+        const events = this.relayService.createEventsFromData(
+          this.pubkey!,
+          this.dataToSign
+        );
 
         for (const event of events) {
           const ndkEvent = new NDKEvent(this.relayService.ndk!, event);
-          const published = await ndkEvent.publish();
+          await ndkEvent.publish();
         }
-      }
 
-      alert('Profile updated successfully!');
+        alert('Profile updated successfully!');
+      }
     } catch (error) {
-      console.error('Error saving profile:', error);
-      alert('Failed to save profile. Please try again.');
+      console.error('Error during signing operation:', error);
+      
+      // Reset issuingBadge flag if this was a badge operation
+      if (this.signingDialogPurpose === 'badge' && this.dataToSign?.memberPubkey) {
+        this.issuingBadge[this.dataToSign.memberPubkey] = false;
+      }
+      
+      alert(`Failed to ${this.signingDialogPurpose === 'badge' ? 'issue badge' : 'save profile'}. Please try again.`);
     }
   }
 

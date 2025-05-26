@@ -1,7 +1,6 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { MediaItem } from '../services/relay.service';
 
 @Component({
   selector: 'app-signing-dialog',
@@ -9,400 +8,244 @@ import { MediaItem } from '../services/relay.service';
   imports: [CommonModule, FormsModule],
   template: `
     <div class="dialog-overlay" *ngIf="visible">
-      <div class="dialog-content">
-        <h2>Sign Profile Updates</h2>
+      <div class="dialog">
+        <h2>{{ title || 'Sign Data' }}</h2>
         
-        <div class="data-preview">
-          <div class="preview-tabs">
-            <button 
-              *ngFor="let tab of dataTabs" 
-              [class.active]="activeTab === tab.id"
-              (click)="activeTab = tab.id"
-              class="tab-button"
-            >
-              {{ tab.label }}
-            </button>
+        <div class="dialog-content">
+          <p>{{ getSigningMessage() }}</p>
+          
+          <div *ngIf="showDataPreview" class="data-preview">
+            <pre>{{ getDataPreviewText() }}</pre>
           </div>
 
-          <div class="preview-content">
-            <ng-container [ngSwitch]="activeTab">
-              <div *ngSwitchCase="'profile'">
-                <h3>Profile Metadata:</h3>
-                <pre>{{ dataToSign?.profile | json }}</pre>
-              </div>
-              
-              <div *ngSwitchCase="'project'">
-                <h3>Project Content:</h3>
-                <pre>{{ dataToSign?.project | json }}</pre>
-              </div>
-              
-              <div *ngSwitchCase="'faq'">
-                <h3>FAQ Items:</h3>
-                <pre>{{ dataToSign?.faq | json }}</pre>
-              </div>
-              
-              <div *ngSwitchCase="'members'">
-                <h3>Team Members:</h3>
-                <pre>{{ dataToSign?.members | json }}</pre>
-              </div>
-
-              <div *ngSwitchCase="'media'">
-                <h3>Media Items:</h3>
-                <div class="media-list">
-                  <div *ngFor="let item of dataToSign?.media" class="media-item">
-                    <div class="media-preview">
-                      <img *ngIf="item.type === 'image'" [src]="item.url" alt="Preview">
-                      <video *ngIf="item.type === 'video'" [src]="item.url" controls></video>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div *ngSwitchCase="'links'">
-                <h3>Identity Links:</h3>
-                <pre>{{ dataToSign?.profile?.identityTags | json }}</pre>
-              </div>
-
-            </ng-container>
-          </div>
-        </div>
-
-        <div class="signing-methods">
-          <div class="method-section">
-            <h3>Sign with Extension</h3>
-            <button class="primary-button" (click)="signWithExtension()" [disabled]="!hasNostrExtension">
-              {{ hasNostrExtension ? 'Sign with Browser Extension' : 'No Nostr Extension Found' }}
+          <div class="signing-options">
+            <button class="sign-button extension" (click)="signWithExtension()">
+              Sign with Extension
             </button>
-          </div>
-
-          <div class="divider">OR</div>
-
-          <div class="method-section">
-            <h3>Sign with Private Key</h3>
-            <input 
-              type="password" 
-              [(ngModel)]="privateKey" 
-              placeholder="Enter your Nostr private key"
-              class="key-input"
-            >
-            <button class="primary-button" (click)="signWithKey()" [disabled]="!privateKey">
-              Sign with Key
-            </button>
+            <div class="or-divider">OR</div>
+            <div class="private-key-section">
+              <input
+                type="password"
+                [(ngModel)]="privateKey"
+                placeholder="Enter your private key (nsec)"
+                class="private-key-input"
+              />
+              <button
+                class="sign-button private-key"
+                [disabled]="!privateKey"
+                (click)="signWithPrivateKey()"
+              >
+                Sign with Private Key
+              </button>
+            </div>
           </div>
         </div>
 
         <div class="dialog-actions">
-          <button class="secondary-button" (click)="onCancel()">Cancel</button>
+          <button class="cancel-button" (click)="cancel()">Cancel</button>
         </div>
       </div>
     </div>
   `,
-  styles: [`
-    .dialog-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(0, 0, 0, 0.5);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 1000;
-    }
+  styles: [
+    `
+      .dialog-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.7);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+      }
 
-    .dialog-content {
-      background: var(--surface-card);
-      border-radius: 8px;
-      padding: 2rem;
-      max-width: 600px;
-      width: 90%;
-      max-height: 90vh;
-      overflow-y: auto;
-    }
+      .dialog {
+        background: var(--surface-card);
+        border-radius: 8px;
+        padding: 2rem;
+        width: 90%;
+        max-width: 600px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+      }
 
-    .data-preview {
-      margin: 1rem 0;
-      padding: 1rem;
-      background: var(--surface-ground);
-      border-radius: 4px;
-      border: 1px solid var(--border);
-    }
+      h2 {
+        margin-top: 0;
+        color: var(--text);
+        margin-bottom: 1.5rem;
+      }
 
-    .data-preview pre {
-      margin: 0;
-      white-space: pre-wrap;
-      word-break: break-all;
-      font-size: 0.9rem;
-      color: var(--text);
-    }
+      .dialog-content {
+        margin-bottom: 2rem;
+      }
 
-    .signing-methods {
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-      margin: 1.5rem 0;
-    }
+      .data-preview {
+        background: var(--surface-ground);
+        padding: 1rem;
+        border-radius: 4px;
+        margin: 1rem 0;
+        max-height: 200px;
+        overflow-y: auto;
+      }
 
-    .method-section {
-      padding: 1rem;
-      border: 1px solid var(--border);
-      border-radius: 4px;
-    }
+      pre {
+        margin: 0;
+        white-space: pre-wrap;
+        word-break: break-all;
+        color: var(--text);
+      }
 
-    .divider {
-      text-align: center;
-      font-weight: 500;
-      color: var(--text-secondary);
-      margin: 1rem 0;
-    }
+      .signing-options {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+        margin-top: 2rem;
+      }
 
-    .key-input {
-      width: 100%;
-      margin-bottom: 1rem;
-      padding: 0.75rem;
-      border: 1px solid var(--border);
-      border-radius: 4px;
-      background: var(--surface-ground);
-      color: var(--text);
-      font-size: 1rem;
-      transition: all 0.2s ease;
-    }
+      .sign-button {
+        padding: 0.75rem 1.5rem;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-weight: 500;
+      }
 
-    .key-input:focus {
-      outline: none;
-      border-color: var(--accent);
-      box-shadow: 0 0 0 2px rgba(8, 108, 129, 0.1);
-    }
+      .sign-button.extension {
+        background: var(--accent);
+        color: white;
+        border: none;
+      }
 
-    .primary-button, .secondary-button {
-      padding: 0.75rem 1.5rem;
-      border-radius: 4px;
-      font-size: 1rem;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      min-width: 120px;
-    }
+      .sign-button.extension:hover {
+        background: var(--accent-dark);
+      }
 
-    .primary-button {
-      background: var(--accent);
-      color: white;
-      border: none;
-    }
+      .or-divider {
+        text-align: center;
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+        position: relative;
+      }
 
-    .secondary-button {
-      background: var(--surface-ground);
-      color: var(--text);
-      border: 1px solid var(--border);
-    }
+      .or-divider::before,
+      .or-divider::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        width: 45%;
+        height: 1px;
+        background: var(--border);
+      }
 
-    .primary-button:hover:not(:disabled),
-    .secondary-button:hover:not(:disabled) {
-      transform: translateY(-1px);
-    }
+      .or-divider::before {
+        left: 0;
+      }
 
-    .primary-button:hover:not(:disabled) {
-      background: var(--accent-dark);
-    }
+      .or-divider::after {
+        right: 0;
+      }
 
-    .secondary-button:hover:not(:disabled) {
-      background: var(--surface-hover);
-    }
+      .private-key-section {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+      }
 
-    .method-section h3 {
-      margin-top: 0;
-      margin-bottom: 1rem;
-      color: var(--text);
-      font-size: 1.1rem;
-      font-weight: 500;
-    }
+      .private-key-input {
+        padding: 0.75rem;
+        border: 1px solid var(--border);
+        border-radius: 4px;
+        background: var(--surface-ground);
+        color: var(--text);
+      }
 
-    .dialog-actions {
-      display: flex;
-      justify-content: flex-end;
-      gap: 1rem;
-      margin-top: 1.5rem;
-    }
+      .sign-button.private-key {
+        background: var(--surface-ground);
+        border: 1px solid var(--border);
+        color: var(--text);
+      }
 
-    button:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
+      .sign-button.private-key:hover:not(:disabled) {
+        background: var(--surface-hover);
+      }
 
-    .preview-tabs {
-      display: flex;
-      gap: 0.5rem;
-      padding: 0.5rem;
-      border-bottom: 1px solid var(--border);
-      margin-bottom: 1rem;
-    }
+      .sign-button.private-key:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
 
-    .tab-button {
-      padding: 0.5rem 1rem;
-      border: none;
-      background: none;
-      color: var(--text);
-      cursor: pointer;
-      opacity: 0.7;
-      transition: all 0.2s ease;
-      position: relative;
-    }
+      .dialog-actions {
+        display: flex;
+        justify-content: flex-end;
+      }
 
-    .tab-button:hover {
-      opacity: 1;
-      background: var(--surface-hover);
-    }
+      .cancel-button {
+        padding: 0.75rem 1.5rem;
+        background: none;
+        border: 1px solid var(--border);
+        border-radius: 4px;
+        color: var(--text);
+        cursor: pointer;
+        transition: all 0.2s;
+      }
 
-    .tab-button.active {
-      opacity: 1;
-      color: var(--accent);
-    }
-
-    .tab-button.active::after {
-      content: '';
-      position: absolute;
-      bottom: -0.5rem;
-      left: 0;
-      right: 0;
-      height: 2px;
-      background: var(--accent);
-    }
-
-    .preview-content {
-      padding: 1rem;
-      background: var(--surface-ground);
-      border-radius: 4px;
-      min-height: 200px;
-      max-height: 300px;
-      overflow-y: auto;
-    }
-
-    .preview-content h3 {
-      margin-top: 0;
-      margin-bottom: 1rem;
-      color: var(--text);
-      font-size: 1rem;
-    }
-
-    .preview-content pre {
-      margin: 0;
-      white-space: pre-wrap;
-      word-break: break-all;
-      font-size: 0.9rem;
-      color: var(--text);
-    }
-
-    .media-editor {
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-    }
-
-    .media-input {
-      display: flex;
-      gap: 0.5rem;
-    }
-
-    .media-type-select {
-      min-width: 100px;
-      padding: 0.75rem;
-      border: 1px solid var(--border);
-      border-radius: 4px;
-      background: var(--surface-ground);
-      color: var(--text);
-    }
-
-    .media-list {
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-    }
-
-    .media-item {
-      display: flex;
-      gap: 1rem;
-      padding: 0.5rem;
-      background: var(--surface-card);
-      border: 1px solid var(--border);
-      border-radius: 4px;
-    }
-
-    .media-preview {
-      flex: 1;
-      max-width: 200px;
-      overflow: hidden;
-    }
-
-    .media-preview img,
-    .media-preview video {
-      width: 100%;
-      height: auto;
-      object-fit: cover;
-    }
-
-    .media-controls {
-      display: flex;
-      gap: 0.5rem;
-    }
-
-    .move-button,
-    .delete-button {
-      padding: 0.25rem 0.5rem;
-      border: none;
-      background: none;
-      cursor: pointer;
-      color: var(--text-secondary);
-    }
-
-    .delete-button:hover {
-      color: var(--danger);
-    }
-  `]
+      .cancel-button:hover {
+        background: var(--surface-hover);
+      }
+    `,
+  ],
 })
 export class SigningDialogComponent {
   @Input() visible = false;
   @Input() dataToSign: any = null;
+  @Input() title: string = ''; // Custom title for the dialog
+  @Input() signingPurpose: 'profile' | 'badge' = 'profile'; // Purpose of signing
+  @Input() showDataPreview: boolean = true; // Whether to show a preview of the data
+
   @Output() sign = new EventEmitter<{ signed: boolean; key?: string }>();
-  
+
   privateKey = '';
-  hasNostrExtension = false;
-  activeTab = 'profile';
 
-  dataTabs = [
-    { id: 'profile', label: 'Profile' },
-    { id: 'project', label: 'Project' },
-    { id: 'faq', label: 'FAQ' },
-    { id: 'members', label: 'Members' },
-    { id: 'links', label: 'Links' },
-    { id: 'media', label: 'Media' }
-  ];
-
-  newMediaUrl = '';
-  newMediaType: 'image' | 'video' = 'image';
-
-  constructor() {
-    // Check for Nostr extension
-    this.hasNostrExtension = window.hasOwnProperty('nostr');
-    this.hasNostrExtension = true;
-
-    console.log('DATA TO SIGN:', JSON.stringify(this.dataToSign));
+  getSigningMessage(): string {
+    if (this.signingPurpose === 'badge') {
+      return 'Sign this badge definition and award to issue it to the member.';
+    }
+    return 'Please sign this data to save your profile changes.';
   }
 
-  ngAfterViewInit() {
-    console.log('DATA TO SIGN:', JSON.stringify(this.dataToSign));
+  getDataPreviewText(): string {
+    if (!this.dataToSign) return '';
+    
+    if (this.signingPurpose === 'badge') {
+      return `Issuing badge to: ${this.dataToSign.recipient || 'member'}\n` +
+             `Badge type: ${this.dataToSign.badgeName || 'Angor Member'}`;
+    }
+    
+    // For profile data, show a summary
+    const summary: string[] = [];
+    if (this.dataToSign.profile) summary.push('✓ Profile Information');
+    if (this.dataToSign.project) summary.push('✓ Project Content');
+    if (this.dataToSign.faq) summary.push(`✓ FAQ Items (${this.dataToSign.faq.length})`);
+    if (this.dataToSign.members) summary.push(`✓ Members (${this.dataToSign.members.pubkeys?.length || 0})`);
+    if (this.dataToSign.media) summary.push(`✓ Media Items (${this.dataToSign.media.length})`);
+    
+    return summary.join('\n');
   }
 
   signWithExtension() {
     this.sign.emit({ signed: true, key: 'extension' });
   }
 
-  signWithKey() {
-    if (this.privateKey) {
-      this.sign.emit({ signed: true, key: this.privateKey });
-    }
+  signWithPrivateKey() {
+    if (!this.privateKey) return;
+    this.sign.emit({ signed: true, key: this.privateKey });
+    this.privateKey = '';
   }
 
-  onCancel() {
+  cancel() {
     this.sign.emit({ signed: false });
+    this.privateKey = '';
   }
 }

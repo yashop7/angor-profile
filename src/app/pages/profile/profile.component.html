@@ -197,6 +197,14 @@
                                 {{ memberProfiles[pubkey].about }}
                             </div>
                         </div>
+                        <button 
+                            class="badge-button" 
+                            [disabled]="memberBadges[memberProfiles[pubkey].pubkey] || issuingBadge[memberProfiles[pubkey].pubkey]"
+                            (click)="issueBadge(memberProfiles[pubkey].pubkey)"
+                        >
+                            {{ issuingBadge[memberProfiles[pubkey].pubkey] ? 'Issuing...' : 
+                               memberBadges[memberProfiles[pubkey].pubkey] ? 'Badge Issued' : 'Issue Badge' }}
+                        </button>
                     </div>
                 </div>
 
@@ -320,5 +328,10 @@
 </div>
 }
 
-<app-signing-dialog [visible]="showSigningDialog" [dataToSign]="dataToSign"
+<app-signing-dialog 
+    [visible]="showSigningDialog" 
+    [dataToSign]="dataToSign"
+    [title]="signingDialogTitle"
+    [signingPurpose]="signingDialogPurpose"
+    [showDataPreview]="showDataPreview"
     (sign)="handleSigning($event)"></app-signing-dialog>

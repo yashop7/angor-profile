@@ -75,6 +75,20 @@ export interface MemberProfile {
   about?: string;
 }
 
+export interface BadgeDefinition {
+  id: string;
+  name: string;
+  description: string;
+  image: string;
+  thumb: string;
+}
+
+export interface BadgeAward {
+  id: string;
+  pubkey: string;
+  badgeId: string;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -650,6 +664,92 @@ export class RelayService {
     }
 
     return events;
+  }
+
+  // Create or find badge definition
+  async createOrFindBadgeDefinition(issuerPubkey: string, badge: {
+    name: string;
+    slug: string;
+    description: string;
+    image: string;
+    thumb: string;
+  }): Promise<string> {
+    try {
+      const ndk = await this.ensureConnected();
+      
+      // Check if badge definition already exists
+      const filter = {
+        kinds: [30009],
+        authors: [issuerPubkey],
+        '#d': [badge.slug]
+      };
+      
+      const existingBadge = await ndk.fetchEvent(filter);
+      
+      if (existingBadge) {
+        return `30009:${issuerPubkey}:${badge.slug}`;
+      }
+      
+      // Create new badge definition
+      const event = new NDKEvent(ndk);
+      event.kind = 30009;
+      event.tags = [
+        ['d', badge.slug],
+        ['name', badge.name],
+        ['description', badge.description],
+        ['image', badge.image, '1024x1024'],
+        ['thumb', badge.thumb, '256x256']
+      ];
+      
+      await event.publish();
+      
+      return `30009:${issuerPubkey}:${badge.slug}`;
+    } catch (error) {
+      console.error('Error creating badge definition:', error);
+      throw error;
+    }
+  }
+
+  // Award badge to a user
+  async awardBadge(issuerPubkey: string, badgeId: string, recipientPubkey: string): Promise<string> {
+    try {
+      const ndk = await this.ensureConnected();
+      
+      const event = new NDKEvent(ndk);
+      event.kind = 8;
+      event.tags = [
+        ['a', badgeId],
+        ['p', recipientPubkey]
+      ];
+      
+      await event.publish();
+      
+      return event.id;
+    } catch (error) {
+      console.error('Error awarding badge:', error);
+      throw error;
+    }
+  }
+
+  // Check if user has already been awarded a badge
+  async checkBadgeAwarded(issuerPubkey: string, badgeDefinitionId: string, recipientPubkey: string): Promise<boolean> {
+    try {
+      const ndk = await this.ensureConnected();
+      
+      const filter = {
+        kinds: [8],
+        authors: [issuerPubkey],
+        '#a': [badgeDefinitionId],
+        '#p': [recipientPubkey]
+      };
+      
+      const event = await ndk.fetchEvent(filter);
+      
+      return !!event;
+    } catch (error) {
+      console.error('Error checking badge award:', error);
+      return false;
+    }
   }
 
   private signEvent(event: any, privateKey: string) {
