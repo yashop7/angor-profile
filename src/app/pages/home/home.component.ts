@@ -1,111 +1,239 @@
-import { Component, OnInit } from '@angular/core';
-import { BreadcrumbComponent } from '../../components/breadcrumb.component';
+import { Component, OnInit, signal, computed } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [BreadcrumbComponent, FormsModule],
-  styles: [`
-    .action-container {
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-    }
-
-    .profile-input {
-      padding: 1rem;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-      font-size: 1.1em;
-      width: 100%;
-      max-width: 400px;
-      background: #f8f8f8;
-      transition: all 0.2s ease;
-    }
-
-
-  `],
+  imports: [FormsModule],
   template: `
-    <section class="hero">
-      <app-breadcrumb [items]="[{ label: 'Home', url: '' }]"></app-breadcrumb>
+    <section class="landing-hero">
 
-      <div class="hero-wrapper">
-        <div class="hero-content">
-          <h1>Welcome to Angor Profile</h1>
-          <p class="hero-description">
-            Angor Profile is a Nostr profile editor, built specifically to manage the 
-            profile information for Angor projects.
+      <div class="landing-content">
+        <div class="landing-header">
+          <h1 class="landing-title">Welcome to Angor Profile</h1>
+          <p class="landing-description">
+            A clean, modern Nostr profile editor designed specifically for managing 
+            your Angor project information with ease and elegance.
           </p>
-          <div class="action-container">
+        </div>
+        
+        <div class="landing-action">
+          <div class="input-group">
             <input 
-              [(ngModel)]="profileId" 
-              placeholder="npub..." 
+              [ngModel]="profileId()"
+              (ngModelChange)="profileId.set($event)"
+              placeholder="Enter your npub..." 
               (keyup.enter)="openProfile()"
-              class="profile-input"
+              class="landing-input border border-blue-600"
+              [class.error]="profileId() && !isValidNpub()"
             >
             <button 
               (click)="openProfile()" 
-              class="cta-button profile-button"
-              [disabled]="!isValidNpub()"
+              class="landing-button"
             >
-              Open Profile
+              <i class="fas fa-arrow-right"></i>
+              <span>Open Profile</span>
             </button>
           </div>
+          
+          @if (profileId() && !isValidNpub()) {
+            <div class="error-message">
+              <i class="fas fa-exclamation-circle"></i>
+              Please enter a valid npub key
+            </div>
+          }
         </div>
       </div>
     </section>
+  `,
+  styles: [`
+    .landing-hero {
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      background: var(--background);
+      padding: 0 2rem;
+    }
 
-    <!-- <div class="features">
-      <div class="feature-card">
-        <svg class="feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
-        </svg>
-        <h2>Discover Projects</h2>
-        <p>Find innovative Bitcoin projects that align with your interests and investment goals.</p>
-      </div>
-      <div class="feature-card">
-        <svg class="feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-        <h2>Invest Securely</h2>
-        <p>Invest in projects with confidence using our secure and transparent platform.</p>
-      </div>
-      <div class="feature-card">
-        <svg class="feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-        </svg>
-        <h2>Track Progress</h2>
-        <p>Monitor your investments and stay updated on project developments.</p>
-      </div>
-    </div> -->
-  `
+    .landing-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      max-width: 800px;
+      margin: 0 auto;
+      text-align: center;
+      gap: 3rem;
+      background: var(--surface-card);
+      padding: 0 2.5rem;
+    }
+
+   
+    .landing-header {
+      max-width: 600px;
+    }
+
+    .landing-title {
+      font-size: 4rem;
+      font-weight: 700;
+      line-height: 1.1;
+      margin-bottom: 1.5rem;
+      color: var(--text);
+      letter-spacing: -0.02em;
+    }
+
+    .landing-description {
+      font-size: 1.3rem;
+      line-height: 1.6;
+      color: var(--text-secondary);
+      margin: 0;
+      opacity: 0.9;
+    }
+
+    .landing-action {
+      width: 100%;
+      max-width: 600px;
+    }
+
+    .input-group {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1rem;
+      background: var(--surface-card);
+      border: 2px solid var(--secondary-border);
+      border-radius: 16px;
+      padding: 0.5rem;
+      transition: all 0.3s ease;
+    }
+
+    .landing-input {
+      flex: 1;
+      padding: 1rem 1.25rem;
+      border-radius: 12px;
+      background: var(--background);
+      color: var(--text);
+      font-size: 1rem;
+      outline: none;
+    }
+
+    .landing-input::placeholder {
+      color: var(--text-secondary);
+      opacity: 0.7;
+    }
+
+    .landing-input.error {
+      color: #ef4444;
+    }
+
+    .landing-button {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
+      padding: 1rem 2rem;
+      border: none;
+      border-radius: 12px;
+      background: var(--accent);
+      color: white;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      white-space: nowrap;
+    }
+
+    .landing-button:hover:not(:disabled) {
+      background: var(--accent-dark);
+      transform: translateY(-1px);
+      box-shadow: 0 8px 24px rgba(8, 108, 129, 0.3);
+    }
+
+    .landing-button:active:not(:disabled) {
+      transform: translateY(0);
+    }
+
+    .landing-button:disabled {
+      background: var(--text-secondary);
+      cursor: not-allowed;
+      opacity: 0.5;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .error-message {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      color: #ef4444;
+      font-size: 0.875rem;
+      margin-top: 0.75rem;
+      font-weight: 500;
+    }
+    @media (max-width: 768px) {
+      .landing-hero {
+        padding: 0 1.5rem;
+        min-height: calc(100vh - 120px);
+      }
+
+      .landing-content {
+        gap: 2.5rem;
+        padding: 0 1.5rem;
+      }
+
+      .landing-title {
+        font-size: 2.5rem;
+      }
+
+      .landing-description {
+        font-size: 1.1rem;
+      }
+
+      .input-group {
+        flex-direction: column;
+        gap: 0.75rem;
+        padding: 1rem;
+      }
+
+      .landing-button {
+        width: 100%;
+        padding: 1rem 2rem;
+      }
+    }
+
+    @media (min-width: 1200px) {
+      .landing-content {
+        gap: 2rem;
+        padding: 0 1rem;
+      }
+    }
+  `]
 })
 export class HomeComponent implements OnInit {
-  profileId: string = '';
+  profileId = signal('');
   private readonly STORAGE_KEY = 'angor-profile-id';
+
+  isValidNpub = computed(() => {
+    const id = this.profileId();
+    return id.length > 0 && id.toLowerCase().startsWith('npub');
+  });
 
   constructor(private router: Router) {}
 
   ngOnInit() {
     const savedProfileId = localStorage.getItem(this.STORAGE_KEY);
     if (savedProfileId) {
-      this.profileId = savedProfileId;
+      this.profileId.set(savedProfileId);
     }
   }
 
   openProfile() {
-    if (this.profileId && this.isValidNpub()) {
-      localStorage.setItem(this.STORAGE_KEY, this.profileId);
-      this.router.navigate(['/profile', this.profileId]);
+    const id = this.profileId();
+    if (id && this.isValidNpub()) {
+      localStorage.setItem(this.STORAGE_KEY, id);
+      this.router.navigate(['/profile', id]);
     }
-  }
-
-  isValidNpub(): boolean {
-    return this.profileId.toLowerCase().startsWith('npub');
   }
 }

@@ -10,7 +10,7 @@ import { CommonModule } from '@angular/common';
       <a class="logo-link" (click)="toggleAppMenu($event)">
         <img src="images/logo-text.svg" alt="Angor Menu" class="logo">
       </a>
-      <div class="app-menu" [class.show]="isAppMenuOpen">
+      <!-- <div class="app-menu" [class.show]="isAppMenuOpen">
         <div class="app-menu-content">
           <a href="https://test.angor.io" class="app-item">
             <i class="fa-solid fa-rocket"></i>
@@ -48,7 +48,7 @@ import { CommonModule } from '@angular/common';
             </div>
           </a>
         </div>
-      </div>
+      </div> -->
     </div>
   `,
   styles: [`

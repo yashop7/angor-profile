@@ -37,6 +37,7 @@ interface BreadcrumbItem {
         margin: 0;
         padding: 0.75rem 1rem;
         width: 100%;
+        max-width: 1400px;
       }
       .breadcrumb-item {
         display: inline-flex;
