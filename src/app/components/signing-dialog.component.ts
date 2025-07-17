@@ -1,6 +1,8 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { nip19 } from 'nostr-tools';
+import { getPublicKey } from 'nostr-tools';
 
 @Component({
   selector: 'app-signing-dialog',
@@ -13,6 +15,12 @@ import { FormsModule } from '@angular/forms';
         
         <div class="dialog-content">
           <p>{{ getSigningMessage() }}</p>
+          
+          @if (validationError) {
+            <div class="error-message">
+              {{ validationError }}
+            </div>
+          }
           
           <div *ngIf="showDataPreview" class="data-preview">
             <pre>{{ getDataPreviewText() }}</pre>
@@ -79,6 +87,16 @@ import { FormsModule } from '@angular/forms';
 
       .dialog-content {
         margin-bottom: 2rem;
+      }
+
+      .error-message {
+        background: #fee;
+        color: #c33;
+        padding: 1rem;
+        border-radius: 4px;
+        border-left: 4px solid #c33;
+        margin: 1rem 0;
+        font-size: 0.9rem;
       }
 
       .data-preview {
@@ -203,10 +221,12 @@ export class SigningDialogComponent {
   @Input() title: string = ''; // Custom title for the dialog
   @Input() signingPurpose: 'profile' | 'badge' = 'profile'; // Purpose of signing
   @Input() showDataPreview: boolean = true; // Whether to show a preview of the data
+  @Input() expectedPubkey: string = ''; // The expected public key that should be used for signing
 
   @Output() sign = new EventEmitter<{ signed: boolean; key?: string }>();
 
   privateKey = '';
+  validationError = '';
 
   getSigningMessage(): string {
     if (this.signingPurpose === 'badge') {
@@ -234,18 +254,67 @@ export class SigningDialogComponent {
     return summary.join('\n');
   }
 
-  signWithExtension() {
-    this.sign.emit({ signed: true, key: 'extension' });
+  async signWithExtension() {
+    this.validationError = '';
+    
+    try {
+      // Check if extension is available
+      if (!window.nostr) {
+        this.validationError = 'Nostr extension not found. Please install a Nostr extension.';
+        return;
+      }
+
+      // Get public key from extension
+      const extensionPubkey = await window.nostr.getPublicKey();
+      
+      // Validate that the extension's pubkey matches the expected pubkey
+      if (extensionPubkey !== this.expectedPubkey) {
+        this.validationError = 'The account signed in to the extension does not match the profile being edited. Please switch to the correct account in your extension or use the correct private key.';
+        return;
+      }
+
+      this.sign.emit({ signed: true, key: 'extension' });
+    } catch (error) {
+      console.error('Error getting public key from extension:', error);
+      this.validationError = 'Failed to get public key from extension. Please try again.';
+    }
   }
 
-  signWithPrivateKey() {
+  async signWithPrivateKey() {
+    this.validationError = '';
+    
     if (!this.privateKey) return;
-    this.sign.emit({ signed: true, key: this.privateKey });
-    this.privateKey = '';
+    
+    try {
+      let privateKeyHex = this.privateKey;
+      
+      // Convert nsec to hex if needed
+      if (this.privateKey.startsWith('nsec')) {
+        const decoded = nip19.decode(this.privateKey);
+        privateKeyHex = decoded.data as string;
+      }
+      
+      // Get public key from private key
+      const privateKeyBytes = new Uint8Array(privateKeyHex.match(/.{1,2}/g)!.map(byte => parseInt(byte, 16)));
+      const derivedPubkey = getPublicKey(privateKeyBytes);
+      
+      // Validate that the derived pubkey matches the expected pubkey
+      if (derivedPubkey !== this.expectedPubkey) {
+        this.validationError = 'The private key provided does not match the profile being edited. Please use the correct private key for this account.';
+        return;
+      }
+
+      this.sign.emit({ signed: true, key: privateKeyHex });
+      this.privateKey = '';
+    } catch (error) {
+      console.error('Error validating private key:', error);
+      this.validationError = 'Invalid private key format. Please enter a valid nsec key or hex private key.';
+    }
   }
 
   cancel() {
     this.sign.emit({ signed: false });
     this.privateKey = '';
+    this.validationError = '';
   }
 }
