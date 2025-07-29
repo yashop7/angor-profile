@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit, signal, ViewChild, ElementRef } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -67,6 +67,8 @@ interface MediaItem {
 export class ProfileComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private relayService = inject(RelayService);
+
+  @ViewChild('tabsContainer', { static: false }) tabsContainer!: ElementRef<HTMLDivElement>;
 
   pubkey!: string;
   npub!: string;
@@ -639,5 +641,25 @@ export class ProfileComponent implements OnInit {
 
   trackById(index: number, item: FaqItem) {
     return item.id;
+  }
+
+  scrollTabsLeft() {
+    if (this.tabsContainer?.nativeElement) {
+      const container = this.tabsContainer.nativeElement;
+      const scrollAmount = container.clientWidth / 2;
+      container.scrollBy({
+        left: -scrollAmount,
+      });
+    }
+  }
+
+  scrollTabsRight() {
+    if (this.tabsContainer?.nativeElement) {
+      const container = this.tabsContainer.nativeElement;
+      const scrollAmount = container.clientWidth / 2;
+      container.scrollBy({
+        left: scrollAmount,
+      });
+    }
   }
 }

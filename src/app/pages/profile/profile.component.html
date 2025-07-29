@@ -37,17 +37,36 @@
 </div>
 } @else {
 <div class="px-2 md:px-4 lg:px-8">
-    <div class="flex w-full mb-8 bg-surface-card border border-secondary-border rounded-lg md:rounded-xl p-1.5 overflow-x-auto scrollbar-hide shadow-sm backdrop-blur-sm md:overflow-visible" style="scrollbar-width: none; -ms-overflow-style: none;">
-      @for (tab of tabs; track tab.id) {
+    <div class="relative mb-8">
         <button 
-          [class]="'flex-1 px-4 py-3 text-sm font-semibold rounded-lg md:rounded-xl transition-all duration-300 whitespace-nowrap text-center md:px-6 md:text-base ' + 
-          (activeTab === tab.id ? 
-            'bg-secondary-card text-text shadow-lg' : 
-            'text-text-secondary hover:text-text hover:bg-secondary-card/50')"
-          (click)="setActiveTab(tab.id)">
-          {{ tab.label }}
+            class="md:hidden absolute left-2 top-1/2 -translate-y-1/2 z-30 w-8 h-8 flex items-center justify-center bg-surface-card/95 backdrop-blur-sm border border-secondary-border rounded-full text-text-secondary hover:text-text hover:bg-secondary-card shadow-lg"
+            (click)="previousTab()"
+        >
+            <i class="fas fa-chevron-left text-xs"></i>
         </button>
-      }
+
+        <div 
+            #tabsContainer
+            class="flex w-full bg-surface-card border border-secondary-border rounded-lg md:rounded-xl p-1.5 shadow-sm backdrop-blur-sm overflow-x-auto scrollbar-hide md:overflow-visible"
+            style="scrollbar-width: none; -ms-overflow-style: none;"
+        >
+            @for (tab of tabs; track tab.id) {
+                <button 
+                    [class]="'md:flex-1 flex-shrink-0 px-3 py-3 mx-0.5 md:mx-1 text-sm font-semibold rounded-lg md:rounded-xl transition-all duration-300 whitespace-nowrap text-center md:px-6 md:text-base min-w-max ' + 
+                    (activeTab === tab.id ? 
+                        'bg-secondary-card text-text shadow-lg' : 
+                        'text-text-secondary hover:text-text hover:bg-secondary-card/50')"
+                    (click)="setActiveTab(tab.id)">
+                    {{ tab.label }}
+                </button>
+            }
+        </div>
+        <button 
+            class="md:hidden absolute right-2 top-1/2 -translate-y-1/2 z-30 w-8 h-8 flex items-center justify-center bg-surface-card/95 backdrop-blur-sm border border-secondary-border rounded-full text-text-secondary hover:text-text hover:bg-secondary-card shadow-lg"
+            (click)="nextTab()"
+        >
+            <i class="fas fa-chevron-right text-xs"></i>
+        </button>
     </div>
 
     <div class="tab-content" [ngSwitch]="activeTab">
