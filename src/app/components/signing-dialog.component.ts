@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, input, output, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -7,229 +7,100 @@ import { FormsModule } from '@angular/forms';
   standalone: true,
   imports: [CommonModule, FormsModule],
   template: `
-    <div class="dialog-overlay" *ngIf="visible">
-      <div class="dialog">
-        <h2>{{ title || 'Sign Data' }}</h2>
-        
-        <div class="dialog-content">
-          <p>{{ getSigningMessage() }}</p>
+    @if (visible()) {
+      <div class="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+        <div class="bg-secondary-card border border-secondary-border rounded-lg shadow-lg w-full max-w-md p-6">
+          <h2 class="text-text text-lg font-semibold mb-4">
+            {{ title() || 'Sign Data' }}
+          </h2>
           
-          <div *ngIf="showDataPreview" class="data-preview">
-            <pre>{{ getDataPreviewText() }}</pre>
-          </div>
+          <div class="space-y-6">
+            <p class="text-text-secondary text-sm">
+              {{ getSigningMessage() }}
+            </p>
+            
+            @if (showDataPreview()) {
+              <div class="bg-surface-card p-3 rounded text-xs">
+                <pre class="text-text whitespace-pre-wrap">{{ getDataPreviewText() }}</pre>
+              </div>
+            }
 
-          <div class="signing-options">
-            <button class="sign-button extension" (click)="signWithExtension()">
-              Sign with Extension
-            </button>
-            <div class="or-divider">OR</div>
-            <div class="private-key-section">
-              <input
-                type="password"
-                [(ngModel)]="privateKey"
-                placeholder="Enter your private key (nsec)"
-                class="private-key-input"
-              />
-              <button
-                class="sign-button private-key"
-                [disabled]="!privateKey"
-                (click)="signWithPrivateKey()"
+            <div class="space-y-4">
+              <button 
+                class="w-full py-2.5 px-4 rounded font-medium transition-colors hover:opacity-90 bg-accent text-white"
+                (click)="signWithExtension()"
               >
-                Sign with Private Key
+                Sign with Extension
               </button>
+              <div class="text-center text-sm text-text-secondary">
+                OR
+              </div>
+              <div class="space-y-3">
+                <input
+                  type="password"
+                  [ngModel]="privateKey()"
+                  (ngModelChange)="privateKey.set($event)"
+                  placeholder="Enter private key (nsec)"
+                  class="w-full px-3 py-2.5 rounded outline-none focus:ring-2 focus:ring-accent transition-all bg-surface-card text-text border border-border"
+                />
+                <button
+                  class="w-full py-2.5 px-4 rounded font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed hover:opacity-90 bg-surface-card text-text border border-border"
+                  [disabled]="!privateKey()"
+                  (click)="signWithPrivateKey()"
+                >
+                  Sign with Private Key
+                </button>
+              </div>
             </div>
           </div>
-        </div>
 
-        <div class="dialog-actions">
-          <button class="cancel-button" (click)="cancel()">Cancel</button>
+          <div class="mt-6 pt-4 border-t border-border">
+            <button 
+              class="w-full py-2 px-4 transition-colors hover:opacity-80 text-text-secondary"
+              (click)="cancel()"
+            >
+              Cancel
+            </button>
+          </div>
         </div>
       </div>
-    </div>
-  `,
-  styles: [
-    `
-      .dialog-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: rgba(0, 0, 0, 0.7);
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        z-index: 1000;
-      }
-
-      .dialog {
-        background: var(--surface-card);
-        border-radius: 8px;
-        padding: 2rem;
-        width: 90%;
-        max-width: 600px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-      }
-
-      h2 {
-        margin-top: 0;
-        color: var(--text);
-        margin-bottom: 1.5rem;
-      }
-
-      .dialog-content {
-        margin-bottom: 2rem;
-      }
-
-      .data-preview {
-        background: var(--surface-ground);
-        padding: 1rem;
-        border-radius: 4px;
-        margin: 1rem 0;
-        max-height: 200px;
-        overflow-y: auto;
-      }
-
-      pre {
-        margin: 0;
-        white-space: pre-wrap;
-        word-break: break-all;
-        color: var(--text);
-      }
-
-      .signing-options {
-        display: flex;
-        flex-direction: column;
-        gap: 1.5rem;
-        margin-top: 2rem;
-      }
-
-      .sign-button {
-        padding: 0.75rem 1.5rem;
-        border-radius: 4px;
-        cursor: pointer;
-        transition: all 0.2s;
-        font-weight: 500;
-      }
-
-      .sign-button.extension {
-        background: var(--accent);
-        color: white;
-        border: none;
-      }
-
-      .sign-button.extension:hover {
-        background: var(--accent-dark);
-      }
-
-      .or-divider {
-        text-align: center;
-        color: var(--text-secondary);
-        font-size: 0.9rem;
-        position: relative;
-      }
-
-      .or-divider::before,
-      .or-divider::after {
-        content: '';
-        position: absolute;
-        top: 50%;
-        width: 45%;
-        height: 1px;
-        background: var(--border);
-      }
-
-      .or-divider::before {
-        left: 0;
-      }
-
-      .or-divider::after {
-        right: 0;
-      }
-
-      .private-key-section {
-        display: flex;
-        flex-direction: column;
-        gap: 1rem;
-      }
-
-      .private-key-input {
-        padding: 0.75rem;
-        border: 1px solid var(--border);
-        border-radius: 4px;
-        background: var(--surface-ground);
-        color: var(--text);
-      }
-
-      .sign-button.private-key {
-        background: var(--surface-ground);
-        border: 1px solid var(--border);
-        color: var(--text);
-      }
-
-      .sign-button.private-key:hover:not(:disabled) {
-        background: var(--surface-hover);
-      }
-
-      .sign-button.private-key:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-      }
-
-      .dialog-actions {
-        display: flex;
-        justify-content: flex-end;
-      }
-
-      .cancel-button {
-        padding: 0.75rem 1.5rem;
-        background: none;
-        border: 1px solid var(--border);
-        border-radius: 4px;
-        color: var(--text);
-        cursor: pointer;
-        transition: all 0.2s;
-      }
-
-      .cancel-button:hover {
-        background: var(--surface-hover);
-      }
-    `,
-  ],
+    }
+  `
 })
 export class SigningDialogComponent {
-  @Input() visible = false;
-  @Input() dataToSign: any = null;
-  @Input() title: string = ''; // Custom title for the dialog
-  @Input() signingPurpose: 'profile' | 'badge' = 'profile'; // Purpose of signing
-  @Input() showDataPreview: boolean = true; // Whether to show a preview of the data
+  visible = input<boolean>(false);
+  dataToSign = input<any>(null);
+  title = input<string>('');
+  signingPurpose = input<'profile' | 'badge'>('profile');
+  showDataPreview = input<boolean>(true);
 
-  @Output() sign = new EventEmitter<{ signed: boolean; key?: string }>();
+  sign = output<{ signed: boolean; key?: string }>();
 
-  privateKey = '';
+  privateKey = signal('');
 
   getSigningMessage(): string {
-    if (this.signingPurpose === 'badge') {
+    if (this.signingPurpose() === 'badge') {
       return 'Sign this badge definition and award to issue it to the member.';
     }
     return 'Please sign this data to save your profile changes.';
   }
 
   getDataPreviewText(): string {
-    if (!this.dataToSign) return '';
+    const data = this.dataToSign();
+    if (!data) return '';
     
-    if (this.signingPurpose === 'badge') {
-      return `Issuing badge to: ${this.dataToSign.recipient || 'member'}\n` +
-             `Badge type: ${this.dataToSign.badgeName || 'Angor Member'}`;
+    if (this.signingPurpose() === 'badge') {
+      return `Issuing badge to: ${data.recipient || 'member'}\n` +
+             `Badge type: ${data.badgeName || 'Angor Member'}`;
     }
     
     // For profile data, show a summary
     const summary: string[] = [];
-    if (this.dataToSign.profile) summary.push('✓ Profile Information');
-    if (this.dataToSign.project) summary.push('✓ Project Content');
-    if (this.dataToSign.faq) summary.push(`✓ FAQ Items (${this.dataToSign.faq.length})`);
-    if (this.dataToSign.members) summary.push(`✓ Members (${this.dataToSign.members.pubkeys?.length || 0})`);
-    if (this.dataToSign.media) summary.push(`✓ Media Items (${this.dataToSign.media.length})`);
+    if (data.profile) summary.push('✓ Profile Information');
+    if (data.project) summary.push('✓ Project Content');
+    if (data.faq) summary.push(`✓ FAQ Items (${data.faq.length})`);
+    if (data.members) summary.push(`✓ Members (${data.members.pubkeys?.length || 0})`);
+    if (data.media) summary.push(`✓ Media Items (${data.media.length})`);
     
     return summary.join('\n');
   }
@@ -239,13 +110,13 @@ export class SigningDialogComponent {
   }
 
   signWithPrivateKey() {
-    if (!this.privateKey) return;
-    this.sign.emit({ signed: true, key: this.privateKey });
-    this.privateKey = '';
+    if (!this.privateKey()) return;
+    this.sign.emit({ signed: true, key: this.privateKey() });
+    this.privateKey.set('');
   }
 
   cancel() {
     this.sign.emit({ signed: false });
-    this.privateKey = '';
+    this.privateKey.set('');
   }
 }

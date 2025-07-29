@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, input, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { animate, style, transition, trigger } from '@angular/animations';
 
@@ -24,43 +24,19 @@ import { animate, style, transition, trigger } from '@angular/animations';
     ])
   ],
   template: `
-    <div class="popup-overlay" [@overlay] (click)="close.emit()">
+    <div class="fixed inset-0 bg-black/90 flex justify-center items-center z-[1000] cursor-pointer backdrop-blur-sm" [@overlay] (click)="close.emit()">
       <img 
-        [src]="imageUrl" 
-        [alt]="altText" 
-        class="popup-image" 
+        [src]="imageUrl()" 
+        [alt]="altText()" 
+        class="max-w-[90vw] max-h-[90vh] object-contain rounded-lg cursor-default" 
         [@dialog]
         (click)="$event.stopPropagation()"
       />
     </div>
-  `,
-  styles: [`
-    .popup-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(0, 0, 0, 0.9);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      z-index: 1000;
-      cursor: pointer;
-      backdrop-filter: blur(2px);
-    }
-
-    .popup-image {
-      max-width: 90vw;
-      max-height: 90vh;
-      object-fit: contain;
-      border-radius: 8px;
-      cursor: default;
-    }
-  `]
+  `
 })
 export class ImagePopupComponent {
-  @Input() imageUrl: string = '';
-  @Input() altText: string = '';
-  @Output() close = new EventEmitter<void>();
+  imageUrl = input<string>('');
+  altText = input<string>('');
+  close = output<void>();
 }

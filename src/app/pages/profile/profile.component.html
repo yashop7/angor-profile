@@ -1,12 +1,12 @@
-<section class="hero">
+<section class="bg-background py-4 pb-10">
     <app-breadcrumb [items]="[
           { label: 'Home', url: '/' },
           { label: 'Profile', url: '' }
         ]"></app-breadcrumb>
-    <div class="hero-wrapper">
-        <div class="hero-content">
-            <h1>Profile Settings</h1>
-            <p class="hero-description">
+    <div class="max-w-6xl mx-auto px-4 md:px-6 lg:px-8">
+        <div class="text-center max-w-3xl mx-auto">
+            <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold text-text my-5 md:mb-6 tracking-tight leading-tight">Profile Settings</h1>
+            <p class="text-lg md:text-xl text-text-secondary leading-relaxed opacity-90">
                 Manage your Nostr profile information that will be displayed on your
                 Angor projects.
             </p>
@@ -15,19 +15,19 @@
 </section>
 
 @if (!profileFound() && !loading) {
-<div class="container">
-    <div class="not-found-container">
-        <div class="not-found-content">
-            <div class="not-found-icon">
-                <i class="fas fa-search text-4xl text-accent/60"></i>
+<div class="px-2 md:px-4 lg:px-8">
+    <div class="flex items-center justify-center">
+        <div class="text-center max-w-lg border border-accent-dark bg-secondary-card p-6 rounded-xl">
+            <div class="size-20 rounded-full bg-accent/10 flex items-center justify-center border-2 border-accent/20 mb-6 mx-auto">
+                <i class="fas fa-search text-2xl text-accent/60"></i>
             </div>
-            <h2 class="not-found-title">Project not found...yet</h2>
-            <p class="not-found-description">
+            <h2 class="font-semibold text-2xl mb-3">Project not found...yet</h2>
+            <p class="text-text-secondary mb-6">
                 If you recently created a new Angor project, it might take a few minutes for it to be distributed and indexed
                 on the decentralized infrastructure.
             </p>
-            <div class="not-found-actions">
-                <button (click)="reloadPage()" class="retry-button">
+            <div>
+                <button (click)="reloadPage()" class="px-4 py-2 bg-accent text-white rounded-md hover:bg-accent-dark">
                     <i class="fas fa-refresh mr-2"></i>
                     Retry
                 </button>
@@ -36,17 +36,22 @@
     </div>
 </div>
 } @else {
-<div class="container">
-    <div class="tabs" [class.mobile]="isMobile">
-        @for (tab of tabs; track tab.id) {
-            <button [class.active]="activeTab === tab.id" (click)="setActiveTab(tab.id)">
-                {{ tab.label }}
-            </button>
-        }
+<div class="px-2 md:px-4 lg:px-8">
+    <div class="flex w-full mb-8 bg-surface-card border border-secondary-border rounded-lg md:rounded-xl p-1.5 overflow-x-auto scrollbar-hide shadow-sm backdrop-blur-sm md:overflow-visible" style="scrollbar-width: none; -ms-overflow-style: none;">
+      @for (tab of tabs; track tab.id) {
+        <button 
+          [class]="'flex-1 px-4 py-3 text-sm font-semibold rounded-lg md:rounded-xl transition-all duration-300 whitespace-nowrap text-center md:px-6 md:text-base ' + 
+          (activeTab === tab.id ? 
+            'bg-secondary-card text-text shadow-lg' : 
+            'text-text-secondary hover:text-text hover:bg-secondary-card/50')"
+          (click)="setActiveTab(tab.id)">
+          {{ tab.label }}
+        </button>
+      }
     </div>
 
     <div class="tab-content" [ngSwitch]="activeTab">
-        <div *ngSwitchCase="'profile'" class="profile-section space-y-6 p-4 md:p-8">
+        <div *ngSwitchCase="'profile'" class="bg-surface-card rounded-lg md:rounded-xl space-y-6 p-4 md:p-8">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-12">
                 <div class="md:col-span-1">
                     <div class="card bg-secondary-card border border-secondary-border overflow-hidden rounded-xl transition-all duration-300">
@@ -149,7 +154,7 @@
             </div>
         </div>
 
-        <div *ngSwitchCase="'project'" class="profile-section p-4 md:p-8">
+        <div *ngSwitchCase="'project'" class="bg-surface-card rounded-lg md:rounded-xl p-4 md:p-8">
             <div class="card bg-surface-card rounded-xl shadow-xl transition-all duration-300">
                 <div class="p-4 md:p-8 bg-secondary-card rounded-xl">
                     <h2 class="text-2xl font-semibold mb-2 text-text flex items-center">
@@ -213,7 +218,7 @@
             </div>
         </div>
 
-        <div *ngSwitchCase="'faq'" class="profile-section p-4 md:p-8">
+        <div *ngSwitchCase="'faq'" class="bg-surface-card rounded-lg md:rounded-xl p-4 md:p-8">
             <div class="bg-secondary-card border border-secondary-border rounded-2xl shadow-2xl p-4 sm:p-8">
                 <h2 class="text-2xl font-bold mb-2 text-text flex items-center gap-2 tracking-tight">
                     <i class="fas fa-question-circle text-accent"></i>
@@ -228,7 +233,7 @@
                         <button 
                             (click)="deleteFaqItem(faq.id)" 
                             title="Delete question"
-                            class="absolute top-4 right-4 h-8 w-8 flex items-center justify-center rounded-full bg-background border border-secondary-border text-text-secondary transition-all duration-300 hover:bg-accent hover:text-white focus:outline-none focus:ring-2 focus:ring-accent"
+                            class="absolute top-4 right-4 h-8 w-8 flex items-center justify-center rounded-full bg-background border border-border text-text-secondary transition-all duration-300 hover:bg-accent hover:text-white focus:outline-none focus:ring-2 focus:ring-accent"
                         >
                             <i class="fas fa-times text-sm"></i>
                         </button>
@@ -265,7 +270,7 @@
             </div>
         </div>
 
-        <div *ngSwitchCase="'members'" class="profile-section p-4 md:p-8">
+        <div *ngSwitchCase="'members'" class="bg-surface-card rounded-lg md:rounded-xl p-4 md:p-8">
             <div class="bg-secondary-card border border-secondary-border rounded-xl shadow-xl space-y-3 p-3 py-5 md:p-6">
                 <h2 class="text-xl font-semibold mb-4 text-text flex items-center">
                     <i class="fas fa-users mr-2 text-accent"></i>
@@ -291,43 +296,44 @@
                                             [(ngModel)]="members.pubkeys[i]" 
                                             (ngModelChange)="onMemberKeyChange(i)"
                                             placeholder="npub..." 
-                                            class="w-full bg-background border-secondary-border focus:border-secondary-border text-text rounded-lg px-4 py-2 transition-all duration-200" 
+                                            class="w-full bg-background border-secondary-border focus:border-secondary-border text-text rounded-lg px-4 py-1 transition-all duration-200" 
                                         />
                                     </div>
                                     <button 
                                         (click)="removeMember(i)"
-                                        class="h-10 w-10 p-0 rounded-full hover:bg-accent/20 text-text-secondary flex items-center justify-center transition-all duration-200 border border-secondary-border"
+                                        class="size-11 p-0 rounded-lg hover:bg-accent/20 text-text-secondary flex items-center justify-center transition-all duration-200 border border-border/40 dark:border-border"
                                     >
                                         <i class="fas fa-times"></i>
                                     </button>
                                 </div>
 
-                                <div *ngIf="memberProfiles[pubkey]" class="bg-gradient-to-r from-background to-surface-card rounded-xl p-6 border border-secondary-border shadow-lg">
+                                @if (memberProfiles[pubkey]) {
+                                <div class="bg-background rounded-xl p-4 sm:p-6 border border-secondary-border shadow-lg overflow-hidden">
                                     <div class="flex flex-col space-y-4">
-                                        <div class="flex flex-col sm:flex-row sm:items-start space-y-4 sm:space-y-0 sm:space-x-6">
+                                        <div class="flex flex-col sm:flex-row sm:items-start space-y-4 sm:space-y-0 sm:space-x-4 lg:space-x-6">
                                             <div class="flex justify-center sm:justify-start flex-shrink-0">
                                                 <img *ngIf="memberProfiles[pubkey].picture" 
                                                     [src]="memberProfiles[pubkey].picture"
-                                                    class="w-16 h-16 rounded-full object-cover border-3 border-secondary-border shadow-lg" 
+                                                    class="w-12 h-12 sm:w-16 sm:h-16 rounded-full object-cover border-2 border-secondary-border shadow-lg" 
                                                     alt="Profile picture" />
-                                                <div *ngIf="!memberProfiles[pubkey].picture" 
-                                                    class="w-16 h-16 rounded-full bg-gradient-to-br from-accent to-accent-dark flex items-center justify-center border-3 border-secondary-border shadow-lg">
-                                                    <i class="fas fa-user text-white text-xl"></i>
+                                                <div *ngIf="!memberProfiles[pubkey].picture"
+                                                    class="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-gradient-to-br from-accent to-accent-dark flex items-center justify-center border-2 border-secondary-border shadow-lg">
+                                                    <i class="fas fa-user text-white text-sm sm:text-xl"></i>
                                                 </div>
                                             </div>
                                             
-                                            <div class="member-info flex-1 text-center sm:text-left min-w-0">
-                                                <div class="member-name text-text font-semibold text-lg mb-1">
+                                            <div class="flex-1 min-w-0 text-center sm:text-left">
+                                                <div class="text-text font-semibold text-base sm:text-lg mb-1 truncate">
                                                     {{ memberProfiles[pubkey].displayName || memberProfiles[pubkey].name || 'Unknown User' }}
                                                 </div>
-                                                <div class="member-nip05 text-accent text-sm font-medium mb-2" *ngIf="memberProfiles[pubkey].nip05">
-                                                    <i class="fas fa-check-circle mr-1"></i>
-                                                    {{ memberProfiles[pubkey].nip05 }}
+                                                <div class="text-accent text-xs sm:text-sm font-medium mb-2 truncate" *ngIf="memberProfiles[pubkey].nip05">
+                                                  <i class="fas fa-check-circle mr-1"></i>
+                                                  {{ memberProfiles[pubkey].nip05 }}
                                                 </div>
-                                                <div class="member-about text-text-secondary text-sm leading-relaxed" *ngIf="memberProfiles[pubkey].about">
+                                                <div class="text-text-secondary text-xs sm:text-sm leading-relaxed line-clamp-3" *ngIf="memberProfiles[pubkey].about">
                                                     {{ memberProfiles[pubkey].about }}
                                                 </div>
-                                                <div class="member-about text-text-secondary/60 text-sm italic" *ngIf="!memberProfiles[pubkey].about">
+                                                <div class="text-text-secondary/60 text-xs sm:text-sm italic" *ngIf="!memberProfiles[pubkey].about">
                                                     No bio available
                                                 </div>
                                             </div>
@@ -335,17 +341,20 @@
                                         
                                         <div class="flex justify-center sm:justify-end pt-2">
                                             <button 
-                                                class="bg-gradient-to-r from-accent to-accent-dark hover:from-accent-dark hover:to-accent text-white rounded-xl px-6 py-3 transition-all duration-300 text-sm font-medium shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center min-w-[140px]" 
+                                                class="bg-gradient-to-r from-accent to-accent-dark hover:from-accent-dark hover:to-accent text-white rounded-lg px-4 sm:px-6 py-2 sm:py-3 transition-all duration-300 text-xs sm:text-sm font-medium shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center" 
                                                 [disabled]="memberBadges[memberProfiles[pubkey].pubkey] || issuingBadge[memberProfiles[pubkey].pubkey]"
                                                 (click)="issueBadge(memberProfiles[pubkey].pubkey)"
                                             >
-                                                <i class="fas fa-award mr-2"></i>
+                                                <i class="fas fa-award mr-1 sm:mr-2 text-xs sm:text-sm"></i>
+                                                <span class="truncate">
                                                 {{ issuingBadge[memberProfiles[pubkey].pubkey] ? 'Issuing...' : 
                                                    memberBadges[memberProfiles[pubkey].pubkey] ? 'Badge Issued' : 'Issue Badge' }}
+                                                </span>
                                             </button>
                                         </div>
                                     </div>
                                 </div>
+                                }
                             </div>
                         </div>
 
@@ -373,7 +382,7 @@
             </div>
         </div>
 
-        <div *ngSwitchCase="'links'" class="profile-section p-4 md:p-8">
+        <div *ngSwitchCase="'links'" class="bg-surface-card rounded-lg md:rounded-xl p-4 md:p-8">
           <div class="bg-secondary-card border border-secondary-border rounded-2xl shadow-2xl">
             <div class="p-4 sm:p-6 md:p-8">
               <div class="flex flex-col gap-4 mb-6 sm:mb-8">
@@ -493,7 +502,7 @@
           </div>
         </div>
 
-        <div *ngSwitchCase="'media'" class="space-y-8 profile-section p-4 md:p-8">
+        <div *ngSwitchCase="'media'" class="space-y-8 bg-surface-card rounded-lg md:rounded-xl p-4 md:p-8">
           <div class="card bg-secondary-card border border-secondary-border rounded-2xl shadow-lg overflow-hidden">
             <div class="p-8">
               <h2 class="text-2xl font-bold mb-2 text-text flex items-center gap-2">
@@ -504,47 +513,47 @@
                 Add images, videos, and other media files to showcase your project.
               </p>
 
-              <div class="flex flex-col md:flex-row items-center gap-4 mb-8">
-                <div class="flex gap-2 w-full md:w-auto">
+              <div class="flex flex-col gap-4 mb-8">
+                <div class="flex gap-2 w-full">
                   <button
                     type="button"
-                    class="shadcn-btn flex items-center gap-2 px-4 py-2 rounded-lg bg-background border border-secondary-border hover:bg-accent/20 text-text-secondary transition"
+                    [class]="'flex items-center justify-center gap-2 px-4 py-3 h-12 rounded-lg border font-medium transition-all duration-200 flex-1 sm:flex-none sm:min-w-[120px] ' + (newMediaType === 'image' ? 'bg-accent text-white border-accent' : 'bg-background border-secondary-border hover:bg-accent/10 text-text-secondary hover:text-text')"
                     (click)="newMediaType = 'image'"
                   >
-                    <i class="fas fa-image h-4 w-4"></i>
-                    Image
+                    <i class="fas fa-image text-sm"></i>
+                    <span class="text-sm font-medium">Image</span>
                   </button>
                   <button
                     type="button"
-                    class="shadcn-btn flex items-center gap-2 px-4 py-2 rounded-lg bg-background border border-secondary-border hover:bg-accent/20 text-text-secondary transition"
+                    [class]="'flex items-center justify-center gap-2 px-4 py-3 h-12 rounded-lg border font-medium transition-all duration-200 flex-1 sm:flex-none sm:min-w-[120px] ' + (newMediaType === 'video' ? 'bg-accent text-white border-accent' : 'bg-background border-secondary-border hover:bg-accent/10 text-text-secondary hover:text-text')"
                     (click)="newMediaType = 'video'"
                   >
-                    <i class="fas fa-video h-4 w-4"></i>
-                    Video
+                    <i class="fas fa-video text-sm"></i>
+                    <span class="text-sm font-medium">Video</span>
                   </button>
                 </div>
-                <div class="flex-1 flex items-center gap-2 w-full">
+                <div class="flex flex-col sm:flex-row gap-3 w-full">
                   <div class="relative flex-1">
                     <input
                       type="text"
                       [(ngModel)]="newMediaUrl"
                       placeholder="Paste media URL here"
-                      class="w-full bg-background border border-secondary-border focus:border-secondary-border text-text rounded-lg px-4 py-2 pr-12 transition"
+                      class="w-full h-12 bg-background border border-secondary-border focus:border-accent focus:ring-2 focus:ring-accent/20 text-text rounded-lg px-4 pr-12 transition-all duration-200 text-sm placeholder:text-text-secondary/60"
                     />
-                    <span class="absolute right-3 top-1/2 -translate-y-1/2 text-text-secondary/40 pointer-events-none">
+                    <span class="absolute right-4 top-1/2 -translate-y-1/2 text-text-secondary/40 pointer-events-none">
                       <i [ngClass]="{
                         'fas fa-image': newMediaType === 'image',
                         'fas fa-video': newMediaType === 'video'
-                      }"></i>
+                      }" class="text-sm"></i>
                     </span>
                   </div>
                   <button
-                    class="shadcn-btn flex items-center gap-2 px-4 py-2 rounded-lg bg-accent hover:bg-accent-dark text-white font-semibold transition"
+                    class="h-12 px-6 rounded-lg bg-accent hover:bg-accent-dark disabled:bg-accent/50 text-white font-medium transition-all duration-200 flex items-center justify-center gap-2 min-w-[100px]"
                     (click)="addMedia()"
                     type="button"
                   >
-                    <i class="fas fa-plus-circle h-4 w-4"></i>
-                    Add
+                    <i class="fas fa-plus text-sm"></i>
+                    <span class="text-sm font-medium">Add</span>
                   </button>
                 </div>
               </div>
@@ -611,7 +620,7 @@
           </div>
         </div>
 
-        <div *ngSwitchCase="'relays'" class="space-y-6 profile-section p-4 md:p-8">
+        <div *ngSwitchCase="'relays'" class="space-y-6 bg-surface-card rounded-lg md:rounded-xl p-4 md:p-8">
             <div class="card bg-secondary-card border border-secondary-border rounded-xl shadow-lg">
             <div class="p-4 md:p-6">
                 <h2 class="text-xl font-semibold mb-3 md:mb-4 text-text flex items-center">
@@ -619,7 +628,7 @@
                   <span class="ml-2">Relay Servers</span>
                 </h2>
 
-                <p class="text-text-secondary mb-5 leading-relaxed text-sm md:text-base">
+                <p class="text-text-secondary mb-5 leading-tight   text-sm md:text-base">
                 Manage the relay servers that your profile will connect to. These
                 relays will be used to publish and retrieve your project data.
                 </p>
@@ -671,11 +680,17 @@
         </div>
     </div>
 
-    <div class="actions">
-        <button class="secondary-button" (click)="resetChanges()">
+    <div class="flex flex-col sm:flex-row gap-4 justify-center sm:justify-end p-4 md:p-6">
+        <button 
+            class="px-6 py-3 bg-background border border-border hover:bg-surface-card text-text-secondary hover:text-text rounded-lg font-medium flex items-center justify-center" 
+            (click)="resetChanges()"
+        >
             Reset Changes
         </button>
-        <button class="primary-button" (click)="saveProfile()">
+        <button 
+            class="px-6 py-3 bg-accent hover:bg-accent-dark text-white rounded-lg font-medium flex items-center justify-center shadow-md hover:shadow-lg" 
+            (click)="saveProfile()"
+        >
             Save Profile
         </button>
     </div>
