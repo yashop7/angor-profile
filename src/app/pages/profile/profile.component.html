@@ -248,7 +248,8 @@
                 </p>
 
                 <div class="space-y-8">
-                    <div *ngFor="let faq of faqItems; trackBy: trackById" class="relative bg-secondary-card border border-secondary-border rounded-xl shadow-md p-6 md:p-10 group transition-all duration-200 hover:border-secondary-border hover:shadow-lg">
+                    @for (faq of faqItems; track faq.id) {
+                    <div class="relative bg-secondary-card border border-secondary-border rounded-xl shadow-md p-6 md:p-10 group transition-all duration-200 hover:border-secondary-border hover:shadow-lg">
                         <button 
                             (click)="deleteFaqItem(faq.id)" 
                             title="Delete question"
@@ -275,7 +276,7 @@
                             ></textarea>
                         </div>
                     </div>
-
+                    }
                     <div class="flex justify-center">
                         <button 
                             class="flex items-center gap-2 bg-background border border-secondary-border hover:bg-accent hover:text-white text-text-secondary font-semibold rounded-xl px-6 py-3 shadow transition-all duration-200 text-base tracking-wide"
@@ -302,12 +303,10 @@
 
                 <div class="space-y-6">
                     <div class="space-y-3">
-                        <div *ngIf="members.pubkeys.length > 0; else noMembers" class="space-y-4">
-                            <div *ngFor="
-                                let pubkey of members.pubkeys;
-                                let i = index;
-                                trackBy: trackByIndex
-                            " class=" rounded-lg p-2 md:p-4 border border-secondary-border space-y-4">
+                        @if (members.pubkeys.length > 0) {
+                            <div class="space-y-4">
+                            @for (pubkey of members.pubkeys; track $index; let i = $index) {
+                            <div class=" rounded-lg p-2 md:p-4 border border-secondary-border space-y-4">
                                 <div class="flex items-center gap-3">
                                     <div class="flex-1">
                                         <input 
@@ -375,9 +374,9 @@
                                 </div>
                                 }
                             </div>
+                      }
                         </div>
-
-                        <ng-template #noMembers>
+                      } @else {
                             <div class="p-8 text-center border border-dashed border-black dark:border-secondary-border rounded-xl bg-surface-card">
                                 <i class="fas fa-users text-accent/40 text-4xl mb-3"></i>
                                 <p class="text-text-secondary">
@@ -387,7 +386,7 @@
                                     Add team members to display on your project page
                                 </p>
                             </div>
-                        </ng-template>
+                      }
                     </div>
 
                     <button 
@@ -417,9 +416,9 @@
               </div>
 
               <div class="space-y-4 sm:space-y-6">
-                <ng-container *ngIf="profile.identityTags?.length">
+                @if (profile.identityTags.length) {
+                  @for (link of profile.identityTags; track $index; let i = $index) {
                   <div
-                    *ngFor="let link of profile.identityTags; let i = index"
                     class="bg-background border border-secondary-border rounded-xl shadow-md p-4 sm:p-6 transition-all duration-200 hover:shadow-lg group"
                   >
                     <div class="flex justify-between items-center mb-4 sm:mb-6">
@@ -450,9 +449,11 @@
                           autocomplete="off"
                         >
                           <option value="">Select Platform</option>
-                          <option *ngFor="let platform of platformSuggestions" [value]="platform">
+                          @for (platform of platformSuggestions; track platform) {
+                          <option [value]="platform">
                             {{ platform }}
                           </option>
+                          }
                           <option value="custom">Custom</option>
                         </select>
                       </div>
@@ -486,6 +487,7 @@
                       </div>
                     </div>
                   </div>
+                  }
                   
                   <div class="flex justify-center pt-2 sm:pt-4">
                     <button
@@ -497,9 +499,8 @@
                       Add Another Link
                     </button>
                   </div>
-                </ng-container>
-                
-                <div *ngIf="!profile.identityTags?.length" class="text-center">
+                } @else {
+                <div class="text-center">
                   <div class="bg-surface-card border border-dashed border-secondary-border rounded-2xl p-6 sm:p-8">
                     <i class="fas fa-link text-accent/40 text-3xl sm:text-4xl mb-3 sm:mb-4"></i>
                     <h3 class="text-text font-semibold text-base sm:text-lg mb-2">No Project Links</h3>
@@ -516,6 +517,7 @@
                     </button>
                   </div>
                 </div>
+                }
               </div>
             </div>
           </div>
@@ -582,11 +584,8 @@
                 class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"
                 (cdkDropListDropped)="dropMedia($event)"
               >
-                <div
-                  *ngFor="let item of mediaItems; let i = index"
-                  class="relative group rounded-xl overflow-hidden shadow-md bg-background border border-secondary-border transition-all duration-300 hover:shadow-lg"
-                  cdkDrag
-                >
+              @for (item of mediaItems; track $index; let i = $index) {
+              <div class="relative group rounded-xl overflow-hidden shadow-md bg-background border border-secondary-border transition-all duration-300 hover:shadow-lg" cdkDrag>
                   <button
                     class="absolute top-3 left-3 z-20 bg-black/60 backdrop-blur-sm border border-white/20 rounded-lg p-2 text-white/90 cursor-move shadow-lg opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-black/80"
                     cdkDragHandle
@@ -616,24 +615,27 @@
                   </div>
 
                   <div class="aspect-square flex items-center justify-center bg-background overflow-hidden rounded-xl">
-                    <img
-                      *ngIf="item.type === 'image'"
-                      [src]="item.url || '/placeholder.svg'"
-                      alt="Media preview"
-                      class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                      loading="lazy"
-                    />
-                    <video 
-                      *ngIf="item.type === 'video'" 
-                      [src]="item.url" 
-                      controls 
-                      class="w-full h-full object-cover"
-                      preload="metadata"
-                    >
-                      Your browser does not support the video tag.
-                    </video>
+                    @if (item.type === 'image') {
+                        <img
+                          [src]="item.url || '/placeholder.svg'"
+                          alt="Media preview"
+                          class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                          loading="lazy"
+                        />
+                    }
+                    @if (item.type === 'video') {
+                        <video 
+                          [src]="item.url" 
+                          controls 
+                          class="w-full h-full object-cover"
+                          preload="metadata"
+                        >
+                          Your browser does not support the video tag.
+                        </video>
+                    }
                   </div>
                 </div>
+                }
               </div>
             </div>
           </div>
