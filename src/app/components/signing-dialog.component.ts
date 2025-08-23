@@ -2,7 +2,7 @@ import { Component, EventEmitter, Input, Output, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { nip19, getPublicKey } from 'nostr-tools';
-import { hexToBytes } from '@noble/hashes/utils';
+import { hexToBytes, bytesToHex } from '@noble/hashes/utils';
 
 @Component({
   selector: 'app-signing-dialog',
@@ -51,7 +51,7 @@ import { hexToBytes } from '@noble/hashes/utils';
                   type="password"
                   [ngModel]="privateKey()"
                   (ngModelChange)="privateKey.set($event)"
-                  placeholder="Enter your private key (nsec)"
+                  placeholder="Enter your private key (nsec or hex)"
                   class="w-full px-4 py-3 border border-secondary-border rounded-lg bg-background text-text focus:outline-none focus:border-accent transition-colors duration-200"
                 />
                 <button
@@ -150,22 +150,33 @@ export class SigningDialogComponent {
     if (!this.privateKey()) return;
 
     try {
-      let privateKeyHex = this.privateKey();
+      let privateKeyHex = this.privateKey().trim();
 
-      // Convert nsec to hex if needed
-      if (this.privateKey().startsWith('nsec')) {
-        const decoded = nip19.decode(this.privateKey());
-        privateKeyHex = decoded.data as string;
+      if (privateKeyHex.startsWith('nsec')) {
+        try {
+          const decoded = nip19.decode(privateKeyHex);
+          if (decoded.type !== 'nsec') {
+            throw new Error('Invalid nsec format');
+          }
+          if (typeof decoded.data === 'string') {
+            privateKeyHex = decoded.data;
+          } else {
+            privateKeyHex = bytesToHex(decoded.data as Uint8Array);
+          }
+        } catch (decodeError) {
+          this.validationError.set('Invalid nsec format. Please check your private key.');
+          return;
+        }
       }
 
-      // Convert hex string to Uint8Array for getPublicKey
+      if (!/^[0-9a-f]{64}$/i.test(privateKeyHex)) {
+        this.validationError.set(`Invalid private key format. Expected 64 hex characters, got ${privateKeyHex.length}.`);
+        return;
+      }
+
       const privateKeyBytes = hexToBytes(privateKeyHex);
-
-
-      // Get public key from private key using nostr-tools utility
       const derivedPubkey = getPublicKey(privateKeyBytes);
 
-      // Validate that the derived pubkey matches the expected pubkey
       if (derivedPubkey !== this.expectedPubkey) {
         this.validationError.set('The private key provided does not match the profile being edited. Please use the correct private key for this account.');
         return;
