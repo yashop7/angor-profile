@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { BreadcrumbComponent } from '../../components/breadcrumb.component';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { nip19 } from 'nostr-tools';
 
 @Component({
   selector: 'app-home',
@@ -41,14 +42,14 @@ import { Router } from '@angular/router';
           <div class="action-container">
             <input 
               [(ngModel)]="profileId" 
-              placeholder="npub..." 
+              placeholder="npub... or hex pubkey" 
               (keyup.enter)="openProfile()"
               class="profile-input"
             >
             <button 
               (click)="openProfile()" 
               class="cta-button profile-button"
-              [disabled]="!isValidNpub()"
+              [disabled]="!isValidInput()"
             >
               Open Profile
             </button>
@@ -99,13 +100,23 @@ export class HomeComponent implements OnInit {
   }
 
   openProfile() {
-    if (this.profileId && this.isValidNpub()) {
+    if (this.profileId && this.isValidInput()) {
       localStorage.setItem(this.STORAGE_KEY, this.profileId);
       this.router.navigate(['/profile', this.profileId]);
     }
   }
 
-  isValidNpub(): boolean {
-    return this.profileId.toLowerCase().startsWith('npub');
+  isValidInput(): boolean {
+    if (!this.profileId) return false;
+    const input = this.profileId.toLowerCase();
+    if (input.startsWith('npub')) {
+      try {
+        nip19.decode(this.profileId);
+        return true;
+      } catch {
+        return false;
+      }
+    }
+    return /^[0-9a-f]{64}$/i.test(this.profileId);
   }
 }
