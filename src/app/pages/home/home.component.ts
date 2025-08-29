@@ -70,14 +70,14 @@ export class HomeComponent implements OnInit {
   }
 
   openProfile() {
-    if (this.profileId && this.isValidInput()) {
+    if (this.profileId() && this.isValidInput()) {
       localStorage.setItem(this.STORAGE_KEY, this.profileId());
       this.router.navigate(['/profile', this.profileId()]);
     }
   }
 
   isValidInput(): boolean {
-    if (!this.profileId) return false;
+    if (!this.profileId()) return false;
     const input = this.profileId().toLowerCase();
     if (input.startsWith('npub')) {
       try {
