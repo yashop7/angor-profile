@@ -72,7 +72,7 @@ export class HomeComponent implements OnInit {
   openProfile() {
     if (this.profileId && this.isValidInput()) {
       localStorage.setItem(this.STORAGE_KEY, this.profileId());
-      this.router.navigate(['/profile', this.profileId]);
+      this.router.navigate(['/profile', this.profileId()]);
     }
   }
 
