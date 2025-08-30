@@ -28,7 +28,7 @@ import { nip19 } from 'nostr-tools';
               placeholder="Npub or HEX Pubkey" 
               (keyup.enter)="openProfile()"
               class="flex-1 px-4 py-4 md:px-5 md:py-4 rounded-xl bg-background text-text text-base outline-none border-0 placeholder:text-text-secondary placeholder:opacity-70"
-              [class]="profileId() && !isValidNpub() ? 'text-red-500' : ''"
+              [class]="profileId() && !isValidKey() ? 'text-red-500' : ''"
             >
             <button 
               (click)="openProfile()" 
@@ -40,10 +40,10 @@ import { nip19 } from 'nostr-tools';
             </button>
           </div>
           
-          @if (profileId() && !isValidNpub()) {
+          @if (profileId() && !isValidKey()) {
             <div class="flex items-center justify-center gap-2 text-red-500 text-sm mt-3 font-medium">
               <i class="fas fa-exclamation-circle"></i>
-              Please enter a valid npub key
+              Please enter a valid npub or hex key
             </div>
           }
         </div>
@@ -55,9 +55,8 @@ export class HomeComponent implements OnInit {
   profileId = signal('');
   private readonly STORAGE_KEY = 'angor-profile-id';
 
-  isValidNpub = computed(() => {
-    const id = this.profileId();
-    return id.length > 0 && id.toLowerCase().startsWith('npub');
+  isValidKey = computed(() => {
+    return this.isValidInput();
   });
 
   constructor(private router: Router) {}
