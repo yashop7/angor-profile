@@ -2,7 +2,6 @@ import { Component, inject, OnInit, signal, ViewChild, ElementRef } from '@angul
 import { ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { BreadcrumbComponent } from '../../components/breadcrumb.component';
 import { FaqItem, RelayService, MemberProfile, BadgeAward } from '../../services/relay.service';
 import { SigningDialogComponent } from '../../components/signing-dialog.component';
 import NDK, {
@@ -54,7 +53,6 @@ interface MediaItem {
   standalone: true,
   imports: [
     CommonModule,
-    BreadcrumbComponent,
     FormsModule,
     SigningDialogComponent,
     DragDropModule,

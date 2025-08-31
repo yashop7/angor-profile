@@ -41,35 +41,8 @@ import { AppLauncherComponent } from './components/app-launcher.component';
 
     <footer class="bg-background border-t border-accent-dark mt-auto">
       <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-12">
-        <div class="flex flex-col lg:flex-row lg:justify-between lg:items-start gap-6 sm:gap-8 lg:gap-12 mb-6 sm:mb-8 lg:mb-10">
-          
-          <div class="flex flex-col items-center lg:items-start gap-3 sm:gap-4 max-w-sm mx-auto lg:mx-0">
-            <img 
-              src="images/logo.svg" 
-              alt="Angor Logo" 
-              class="w-10 sm:w-12 lg:w-14 h-auto transition-all duration-300 hover:opacity-80 hover:scale-105"
-              loading="lazy"
-            >
-            <p class="text-text-secondary text-xs sm:text-sm leading-relaxed text-center lg:text-left opacity-75 lg:opacity-80 max-w-xs lg:max-w-sm">
-              A decentralized P2P funding protocol built on Bitcoin and Nostr for transparent project financing.
-            </p>
-          </div>
 
-          <div class="flex flex-col items-center lg:items-end gap-3 sm:gap-4">
-            <h3 class="text-sm font-medium text-text opacity-90 mb-1">Platform</h3>
-            <div class="grid grid-cols-2 sm:grid-cols-1 gap-x-6 gap-y-2 sm:gap-x-0 sm:gap-y-2 lg:gap-y-1.5">
-              <a href="https://test.angor.io" class="text-text-secondary text-xs sm:text-sm transition-all duration-200 hover:text-accent lg:hover:translate-x-0.5 opacity-75 hover:opacity-100 text-center sm:text-left lg:text-right">Angor App</a>
-              <a href="https://hub.angor.io" class="text-text-secondary text-xs sm:text-sm transition-all duration-200 hover:text-accent lg:hover:translate-x-0.5 opacity-75 hover:opacity-100 text-center sm:text-left lg:text-right">Angor Hub</a>
-              <a href="https://profile.angor.io" class="text-text-secondary text-xs sm:text-sm transition-all duration-200 hover:text-accent lg:hover:translate-x-0.5 opacity-75 hover:opacity-100 text-center sm:text-left lg:text-right">Angor Profile</a>
-              <a href="https://blog.angor.io" class="text-text-secondary text-xs sm:text-sm transition-all duration-200 hover:text-accent lg:hover:translate-x-0.5 opacity-75 hover:opacity-100 text-center sm:text-left lg:text-right">Angor Blog</a>
-              <a href="https://angor.io" class="text-text-secondary text-xs sm:text-sm transition-all duration-200 hover:text-accent lg:hover:translate-x-0.5 opacity-75 hover:opacity-100 text-center sm:text-left lg:text-right col-span-2 sm:col-span-1">Angor Web</a>
-            </div>
-          </div>
-        </div>
-
-        <div class="h-px bg-accent-dark mb-4 sm:mb-6 lg:mb-8 opacity-30"></div>
-
-        <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 sm:gap-4 text-center sm:text-left">
+  <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 sm:gap-4 text-center sm:text-left">
           <p class="text-text-secondary text-xs opacity-70 order-2 sm:order-1">
             © {{ currentYear }} Angor Profile. All rights reserved.
           </p>
