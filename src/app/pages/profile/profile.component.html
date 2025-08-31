@@ -197,36 +197,52 @@
                         Project Description
                     </h2>
                     <p class="text-text-secondary mb-8">
-                        Write a detailed description of your project. This will be displayed as your main project content.
+                        Write a detailed description of your project. This will be displayed as your main project content. Full markdown support included.
                     </p>
 
                     <div class="space-y-6">
                         <div class="bg-surface-card border border-secondary-border rounded-lg p-3">
                             <div class="flex items-center justify-between gap-2">
                                 <div class="flex items-center gap-1 flex-wrap">
-                                    <button class="size-8 md:size-9 flex items-center justify-center rounded-md hover:bg-accent/20 text-text-secondary hover:text-text transition-colors duration-200" (click)="formatText('**', '**')" title="Bold">
+                                    <button type="button" class="size-8 md:size-9 flex items-center justify-center rounded-md hover:bg-accent/20 text-text-secondary hover:text-text transition-colors duration-200" (click)="formatProjectText('**', '**')" title="Bold">
                                         <i class="fas fa-bold text-sm"></i>
                                     </button>
-                                    <button class="size-8 md:size-9 flex items-center justify-center rounded-md hover:bg-accent/20 text-text-secondary hover:text-text transition-colors duration-200" (click)="formatText('*', '*')" title="Italic">
+                                    <button type="button" class="size-8 md:size-9 flex items-center justify-center rounded-md hover:bg-accent/20 text-text-secondary hover:text-text transition-colors duration-200" (click)="formatProjectText('*', '*')" title="Italic">
                                         <i class="fas fa-italic text-sm"></i>
                                     </button>
-                                    <button class="size-8 md:size-9 flex items-center justify-center rounded-md hover:bg-accent/20 text-text-secondary hover:text-text transition-colors duration-200" (click)="formatText('###', '')" title="Heading">
+                                    <button type="button" class="size-8 md:size-9 flex items-center justify-center rounded-md hover:bg-accent/20 text-text-secondary hover:text-text transition-colors duration-200" (click)="formatProjectText('### ', '')" title="Heading">
                                         <i class="fas fa-heading text-sm"></i>
                                     </button>
-                                    <button class="size-8 md:size-9 flex items-center justify-center rounded-md hover:bg-accent/20 text-text-secondary hover:text-text transition-colors duration-200" (click)="formatText('- ', '')" title="List">
+                                    <button type="button" class="size-8 md:size-9 flex items-center justify-center rounded-md hover:bg-accent/20 text-text-secondary hover:text-text transition-colors duration-200" (click)="formatProjectText('- ', '')" title="List">
                                         <i class="fas fa-list-ul text-sm"></i>
                                     </button>
-                                    <button class="size-8 md:size-9 flex items-center justify-center rounded-md hover:bg-accent/20 text-text-secondary hover:text-text transition-colors duration-200" (click)="formatText('[', '](url)')" title="Link">
+                                    <button type="button" class="size-8 md:size-9 flex items-center justify-center rounded-md hover:bg-accent/20 text-text-secondary hover:text-text transition-colors duration-200" (click)="formatProjectText('1. ', '')" title="Numbered List">
+                                        <i class="fas fa-list-ol text-sm"></i>
+                                    </button>
+                                    <button type="button" class="size-8 md:size-9 flex items-center justify-center rounded-md hover:bg-accent/20 text-text-secondary hover:text-text transition-colors duration-200" (click)="formatProjectText('[', '](url)')" title="Link">
                                         <i class="fas fa-link text-sm"></i>
+                                    </button>
+                                    <button type="button" class="size-8 md:size-9 flex items-center justify-center rounded-md hover:bg-accent/20 text-text-secondary hover:text-text transition-colors duration-200" (click)="formatProjectText('![', '](image-url)')" title="Image">
+                                        <i class="fas fa-image text-sm"></i>
+                                    </button>
+                                    <button type="button" class="size-8 md:size-9 flex items-center justify-center rounded-md hover:bg-accent/20 text-text-secondary hover:text-text transition-colors duration-200" (click)="formatProjectText('`', '`')" title="Code">
+                                        <i class="fas fa-code text-sm"></i>
+                                    </button>
+                                    <button type="button" class="size-8 md:size-9 flex items-center justify-center rounded-md hover:bg-accent/20 text-text-secondary hover:text-text transition-colors duration-200" (click)="formatProjectText('```\n', '\n```')" title="Code Block">
+                                        <i class="fas fa-file-code text-sm"></i>
+                                    </button>
+                                    <button type="button" class="size-8 md:size-9 flex items-center justify-center rounded-md hover:bg-accent/20 text-text-secondary hover:text-text transition-colors duration-200" (click)="formatProjectText('> ', '')" title="Quote">
+                                        <i class="fas fa-quote-left text-sm"></i>
                                     </button>
                                 </div>
                                 <button 
+                                    type="button"
                                     [class]="'h-8 px-3 md:h-9 md:px-4 flex items-center justify-center gap-2 rounded-md font-medium border border-secondary-border transition-colors duration-200 text-sm ' + (showPreview ? 'bg-accent text-white' : 'bg-background hover:bg-accent/20 text-text-secondary hover:text-text')"
                                     (click)="togglePreview()"
                                     title="Toggle Preview"
                                 >
                                     <i class="fas fa-eye text-sm"></i>
-                                    <span class="hidden sm:inline">Preview</span>
+                                    <span class="hidden sm:inline">{{ showPreview ? 'Edit' : 'Preview' }}</span>
                                 </button>
                             </div>
                         </div>
@@ -234,18 +250,39 @@
                         <div class="relative">
                             <div *ngIf="!showPreview">
                                 <textarea 
+                                    #projectTextarea
                                     [(ngModel)]="projectContent.content"
                                     (input)="onContentChange()"
-                                    class="w-full min-h-[250px] md:min-h-[350px] p-3 md:p-4 rounded-lg bg-surface-card border border-secondary-border focus:border-accent text-text text-sm md:text-base resize-y transition-all duration-200 placeholder:text-text-secondary/50"
-                                    placeholder="Write your project description here... Use Markdown for formatting."
+                                    class="w-full min-h-[350px] md:min-h-[450px] p-3 md:p-4 rounded-lg bg-surface-card border border-secondary-border focus:border-accent text-text text-sm md:text-base resize-y transition-all duration-200 placeholder:text-text-secondary/50 font-mono"
+                                    placeholder="Write your project description here... Use Markdown for formatting.
+
+# Project Title
+## Introduction
+Your project description with **bold** and *italic* text.
+
+### Features
+- Feature 1
+- Feature 2
+
+### Code Example
+```javascript
+console.log('Hello World');
+```
+
+> Quote or important note
+
+[Link to documentation](https://example.com)
+![Project Image](https://example.com/image.jpg)"
                                 ></textarea>
                                 <div *ngIf="projectContent.lastUpdated" class="text-text-secondary text-xs md:text-sm mt-3">
                                     Last updated: {{ formatDate(projectContent.lastUpdated) }}
                                 </div>
                             </div>
 
-                            <div *ngIf="showPreview" class="w-full min-h-[250px] md:min-h-[350px] p-3 md:p-4 rounded-lg bg-surface-card border border-secondary-border text-text text-sm md:text-base">
-                                <markdown [data]="projectContent.content"></markdown>
+                            <div *ngIf="showPreview" class="w-full min-h-[350px] md:min-h-[450px] p-3 md:p-4 rounded-lg bg-surface-card border border-secondary-border text-text text-sm md:text-base overflow-auto">
+                                <div class="prose prose-sm md:prose-base max-w-none dark:prose-invert prose-headings:text-text prose-p:text-text prose-a:text-accent prose-strong:text-text prose-em:text-text prose-code:text-accent prose-pre:bg-background prose-pre:border prose-pre:border-secondary-border prose-blockquote:border-l-accent prose-blockquote:text-text-secondary prose-li:text-text">
+                                    <markdown [data]="projectContent.content || '*No content yet. Click Edit to start writing.*'"></markdown>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -260,41 +297,104 @@
                     Frequently Asked Questions
                 </h2>
                 <p class="text-text-secondary mb-6">
-                    Add questions and answers that will help users understand your project better.
+                    Add questions and answers that will help users understand your project better. Answers support full markdown formatting.
                 </p>
 
                 <div class="space-y-8">
                     @for (faq of faqItems; track faq.id) {
                     <div class="relative bg-secondary-card border border-secondary-border rounded-xl shadow-md p-6 md:p-10 group transition-all duration-200 hover:border-secondary-border hover:shadow-lg">
                         <button 
+                            type="button"
                             (click)="deleteFaqItem(faq.id)" 
                             title="Delete question"
                             class="absolute top-4 right-4 h-8 w-8 flex items-center justify-center rounded-full bg-background border border-border text-text-secondary transition-all duration-300 hover:bg-accent hover:text-white focus:outline-none focus:ring-2 focus:ring-accent"
                         >
                             <i class="fas fa-times text-sm"></i>
                         </button>
-                        <div class="mb-4">
-                            <label class="block text-text-secondary font-semibold mb-1 tracking-wide">Question</label>
+                        <div class="mb-6">
+                            <label class="block text-text-secondary font-semibold mb-2 tracking-wide">Question</label>
                             <input 
                                 type="text" 
                                 [(ngModel)]="faq.question" 
                                 placeholder="Enter your question" 
-                                class="w-full bg-background border border-secondary-border focus:border-secondary-border text-text rounded-lg px-4 py-2 transition-all duration-200 font-mono text-base placeholder:text-text-secondary/40 shadow-inner"
+                                class="w-full bg-background border border-secondary-border focus:border-secondary-border text-text rounded-lg px-4 py-3 transition-all duration-200 text-base placeholder:text-text-secondary/40 shadow-inner"
                             />
                         </div>
-                        <div>
-                            <label class="block text-text-secondary font-semibold mb-1 tracking-wide">Answer</label>
-                            <textarea 
-                                [(ngModel)]="faq.answer" 
-                                rows="4" 
-                                placeholder="Enter your answer"
-                                class="w-full bg-background border border-secondary-border focus:border-secondary-border text-text rounded-lg px-4 py-2 transition-all duration-200 font-mono text-base placeholder:text-text-secondary/40 resize-y shadow-inner"
-                            ></textarea>
+                        <div class="space-y-4">
+                            <div class="flex items-center justify-between">
+                                <label class="block text-text-secondary font-semibold tracking-wide">Answer</label>
+                                <div class="flex items-center gap-2">
+                                    <button 
+                                        type="button"
+                                        [class]="'h-8 px-3 flex items-center justify-center gap-2 rounded-md font-medium border border-secondary-border transition-colors duration-200 text-xs ' + (faq.showPreview ? 'bg-accent text-white' : 'bg-background hover:bg-accent/20 text-text-secondary hover:text-text')"
+                                        (click)="toggleFaqPreview(faq.id)"
+                                        title="Toggle Preview"
+                                    >
+                                        <i class="fas fa-eye text-xs"></i>
+                                        <span>{{ faq.showPreview ? 'Edit' : 'Preview' }}</span>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-surface-card border border-secondary-border rounded-lg p-3" *ngIf="!faq.showPreview">
+                                <div class="flex items-center gap-1 flex-wrap mb-3">
+                                    <button type="button" class="size-7 flex items-center justify-center rounded-md hover:bg-accent/20 text-text-secondary hover:text-text transition-colors duration-200" (click)="formatFaqText(faq.id, '**', '**')" title="Bold">
+                                        <i class="fas fa-bold text-xs"></i>
+                                    </button>
+                                    <button type="button" class="size-7 flex items-center justify-center rounded-md hover:bg-accent/20 text-text-secondary hover:text-text transition-colors duration-200" (click)="formatFaqText(faq.id, '*', '*')" title="Italic">
+                                        <i class="fas fa-italic text-xs"></i>
+                                    </button>
+                                    <button type="button" class="size-7 flex items-center justify-center rounded-md hover:bg-accent/20 text-text-secondary hover:text-text transition-colors duration-200" (click)="formatFaqText(faq.id, '### ', '')" title="Heading">
+                                        <i class="fas fa-heading text-xs"></i>
+                                    </button>
+                                    <button type="button" class="size-7 flex items-center justify-center rounded-md hover:bg-accent/20 text-text-secondary hover:text-text transition-colors duration-200" (click)="formatFaqText(faq.id, '- ', '')" title="List">
+                                        <i class="fas fa-list-ul text-xs"></i>
+                                    </button>
+                                    <button type="button" class="size-7 flex items-center justify-center rounded-md hover:bg-accent/20 text-text-secondary hover:text-text transition-colors duration-200" (click)="formatFaqText(faq.id, '[', '](url)')" title="Link">
+                                        <i class="fas fa-link text-xs"></i>
+                                    </button>
+                                    <button type="button" class="size-7 flex items-center justify-center rounded-md hover:bg-accent/20 text-text-secondary hover:text-text transition-colors duration-200" (click)="formatFaqText(faq.id, '`', '`')" title="Code">
+                                        <i class="fas fa-code text-xs"></i>
+                                    </button>
+                                    <button type="button" class="size-7 flex items-center justify-center rounded-md hover:bg-accent/20 text-text-secondary hover:text-text transition-colors duration-200" (click)="formatFaqText(faq.id, '> ', '')" title="Quote">
+                                        <i class="fas fa-quote-left text-xs"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div *ngIf="!faq.showPreview">
+                                <textarea 
+                                    [(ngModel)]="faq.answer" 
+                                    rows="6" 
+                                    [attr.data-faq-id]="faq.id"
+                                    placeholder="Enter your answer with markdown support...
+
+**Bold text** and *italic text*
+- List items
+- Another item
+
+```code
+Code blocks supported
+```
+
+> Blockquotes for important notes
+
+[Links](https://example.com) work too!"
+                                    class="w-full bg-background border border-secondary-border focus:border-secondary-border text-text rounded-lg px-4 py-3 transition-all duration-200 font-mono text-sm placeholder:text-text-secondary/40 resize-y shadow-inner"
+                                ></textarea>
+                            </div>
+                            
+                            <div *ngIf="faq.showPreview" class="w-full min-h-[150px] p-4 rounded-lg bg-background border border-secondary-border">
+                                <div class="prose prose-sm max-w-none dark:prose-invert prose-headings:text-text prose-p:text-text prose-a:text-accent prose-strong:text-text prose-em:text-text prose-code:text-accent prose-pre:bg-surface-card prose-pre:border prose-pre:border-secondary-border prose-blockquote:border-l-accent prose-blockquote:text-text-secondary prose-li:text-text">
+                                    <markdown [data]="faq.answer || '*No answer yet. Click Edit to start writing.*'"></markdown>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     }
                     <div class="flex justify-center">
                         <button 
+                            type="button"
                             class="flex items-center gap-2 bg-background border border-secondary-border hover:bg-accent hover:text-white text-text-secondary font-semibold rounded-xl px-6 py-3 shadow transition-all duration-200 text-base tracking-wide"
                             (click)="addFaqItem()"
                         >

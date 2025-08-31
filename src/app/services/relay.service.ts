@@ -53,6 +53,7 @@ export interface FaqItem {
   id: string;
   question: string;
   answer: string;
+  showPreview?: boolean;
 }
 
 export interface ProjectContent {

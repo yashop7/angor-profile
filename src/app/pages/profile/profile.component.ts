@@ -67,6 +67,7 @@ export class ProfileComponent implements OnInit {
   private relayService = inject(RelayService);
 
   @ViewChild('tabsContainer', { static: false }) tabsContainer!: ElementRef<HTMLDivElement>;
+  @ViewChild('projectTextarea', { static: false }) projectTextarea!: ElementRef<HTMLTextAreaElement>;
 
   pubkey!: string;
   npub!: string;
@@ -400,6 +401,71 @@ export class ProfileComponent implements OnInit {
     textarea.setSelectionRange(start + prefix.length, end + prefix.length);
   }
 
+  formatProjectText(prefix: string, suffix: string) {
+    const textarea = this.projectTextarea?.nativeElement;
+    if (!textarea) return;
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const selection = textarea.value.substring(start, end);
+    const replacement = prefix + selection + suffix;
+
+    textarea.value =
+      textarea.value.substring(0, start) +
+      replacement +
+      textarea.value.substring(end);
+
+    this.projectContent.content = textarea.value;
+    this.onContentChange();
+
+    textarea.focus();
+    textarea.setSelectionRange(start + prefix.length, end + prefix.length);
+  }
+
+  formatFaqText(faqId: string, prefix: string, suffix: string) {
+    const textarea = document.querySelector(`textarea[data-faq-id="${faqId}"]`) as HTMLTextAreaElement;
+    if (!textarea) {
+      // Fallback: find the active textarea
+      const activeTextarea = document.activeElement as HTMLTextAreaElement;
+      if (activeTextarea && activeTextarea.tagName === 'TEXTAREA') {
+        this.applyTextFormatting(activeTextarea, prefix, suffix, faqId);
+      }
+      return;
+    }
+
+    this.applyTextFormatting(textarea, prefix, suffix, faqId);
+  }
+
+  private applyTextFormatting(textarea: HTMLTextAreaElement, prefix: string, suffix: string, faqId?: string) {
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const selection = textarea.value.substring(start, end);
+    const replacement = prefix + selection + suffix;
+
+    textarea.value =
+      textarea.value.substring(0, start) +
+      replacement +
+      textarea.value.substring(end);
+
+    // Update the model
+    if (faqId) {
+      const faq = this.faqItems.find(f => f.id === faqId);
+      if (faq) {
+        faq.answer = textarea.value;
+      }
+    }
+
+    textarea.focus();
+    textarea.setSelectionRange(start + prefix.length, end + prefix.length);
+  }
+
+  toggleFaqPreview(faqId: string) {
+    const faq = this.faqItems.find(f => f.id === faqId);
+    if (faq) {
+      faq.showPreview = !faq.showPreview;
+    }
+  }
+
   togglePreview() {
     this.showPreview = !this.showPreview;
   }
@@ -417,6 +483,7 @@ export class ProfileComponent implements OnInit {
       id: crypto.randomUUID(),
       question: '',
       answer: '',
+      showPreview: false,
     });
   }
 
