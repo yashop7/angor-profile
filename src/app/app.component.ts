@@ -1,6 +1,7 @@
-import { Component } from '@angular/core';
-import { RouterOutlet, RouterLink } from '@angular/router';
+import { Component, computed, inject } from '@angular/core';
+import { RouterOutlet } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { ThemeService } from './services/theme.service';
 import { environment } from '../environment';
 import { AppLauncherComponent } from './components/app-launcher.component';
@@ -10,110 +11,64 @@ import { AppLauncherComponent } from './components/app-launcher.component';
   standalone: true,
   imports: [RouterOutlet, CommonModule, AppLauncherComponent],
   template: `
-    <header>
-      <nav>
-      <app-launcher></app-launcher>
-        <!-- <a routerLink="/" class="logo-link">
-          <img src="images/logo-text.svg" alt="Angor Profile Logo" class="logo">
-        </a> -->
-        <div class="nav-links">
-          <!-- <a href="https://hub.angor.io/explore">Explore</a>
-          <a routerLink="/profile">Profile</a> -->
-          <button (click)="toggleTheme()" class="theme-toggle">
-            {{ (themeService.theme$ | async) === 'light' ? '☀️' : '🌙' }}
+    <header class="bg-background border-b border-accent-dark backdrop-blur-md sticky top-0 z-[1000] transition-all duration-300">
+      <nav class="flex items-center justify-between max-w-6xl mx-auto px-6 h-16">
+        <div class="flex items-center">
+          <app-launcher></app-launcher>
+        </div>
+        <div class="flex items-center gap-4">
+          <button 
+            class="flex items-center justify-center w-11 h-11 border border-secondary-border rounded-xl bg-surface-card text-header-text cursor-pointer transition-all duration-300 ease-out relative overflow-hidden shadow-sm opacity-80 hover:bg-surface-hover hover:border-accent hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0 md:w-10 md:h-10"
+            (click)="toggleTheme()" 
+            [attr.aria-label]="'Switch to ' + (isDarkTheme() ? 'light' : 'dark') + ' theme'"
+            [title]="'Switch to ' + (isDarkTheme() ? 'light' : 'dark') + ' theme'"
+          >
+            <div class="relative flex items-center justify-center transition-transform duration-500 ease-out hover:rotate-180">
+              @if (isDarkTheme()) {
+                <img src="assets/images/sun.svg" alt="Switch to light theme" class="w-5 h-5 transition-all duration-300 hover:scale-110 filter brightness-0 invert">
+              } @else {
+                <img src="assets/images/moon.svg" alt="Switch to dark theme" class="w-5 h-5 transition-all duration-300 hover:scale-110 dark:filter dark:brightness-0 dark:invert">
+              }
+            </div>
           </button>
         </div>
       </nav>
     </header>
 
-    <main>
+    <main class="min-h-[calc(100vh-120px)] flex-1">
       <router-outlet />
     </main>
 
-    <footer class="modern-footer">
-      <div class="footer-bottom">
-        <div>
-          <img src="images/logo.svg" alt="Angor Logo" class="footer-logo">
-          <p class="footer-slogan">Angor is a P2P funding protocol built on Bitcoin and Nostr</p>
-        </div>
+    <footer class="bg-background border-t border-accent-dark mt-auto">
+      <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-12">
 
-        <p>&copy; 2024 Angor Profile. All rights reserved. Version {{ version }}.
-           <a href="https://angor.io/terms/">Terms of Use</a>.
-        <a href="https://angor.io/privacy/">Privacy Policy</a>.</p>
+  <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 sm:gap-4 text-center sm:text-left">
+          <p class="text-text-secondary text-xs opacity-70 order-2 sm:order-1">
+            © {{ currentYear }} Angor Profile. All rights reserved.
+          </p>
+          <div class="flex flex-col xs:flex-row items-center gap-2 xs:gap-3 sm:gap-4 lg:gap-6 order-1 sm:order-2">
+            <div class="flex items-center gap-3 sm:gap-4 lg:gap-6">
+              <a href="https://angor.io/terms/" class="text-text-secondary text-xs transition-all duration-200 opacity-70 hover:text-accent hover:opacity-100">Terms</a>
+              <a href="https://angor.io/privacy/" class="text-text-secondary text-xs transition-all duration-200 opacity-70 hover:text-accent hover:opacity-100">Privacy</a>
+              <span class="text-text-secondary text-xs opacity-50 font-mono bg-surface-card px-2 py-1 rounded border border-secondary-border">v{{ version }}</span>
+            </div>
+          </div>
+        </div>
       </div>
     </footer>
-  `,
-  styles: [`
-    .theme-toggle {
-      background: none;
-      border: none;
-      cursor: pointer;
-      font-size: 1.2rem;
-      padding: 0.5rem;
-    }
-
-    .modern-footer {
-      background: var(--header-bg);
-      color: var(--header-text);
-      padding: 3rem 1rem 3rem;
-      margin-top: 4rem;
-    }
-
-    .footer-bottom {
-      padding-top: 1rem;
-      text-align: center;
-      opacity: 0.8;
-      font-size: 0.9rem;
-    }
-
-    @media (max-width: 768px) {
-      .footer-content {
-        grid-template-columns: 1fr;
-        text-align: center;
-      }
-
-      .social-links {
-        justify-content: center;
-      }
-    }
-
-    .brand-section {
-      grid-column: auto;
-      text-align: left;
-      margin: 1em;
-    }
-
-    @media (max-width: 1024px) {
-      .footer-content {
-        grid-template-columns: 1fr;
-        gap: 2rem;
-      }
-
-      .brand-section {
-        text-align: center;
-      }
-    }
-
-    .footer-logo {
-      height: 40px;
-      width: auto;
-      margin-bottom: 1rem;
-    }
-
-    .footer-slogan {
-      opacity: 0.8;
-      max-width: 400px;
-      margin: 0 auto;
-      line-height: 1.5;
-    }
-  `]
+  `
 })
 export class AppComponent {
   title = 'angor-profile';
+  version = environment.appVersion;
+  currentYear = new Date().getFullYear();
 
-  version = environment.appVersion
+  private themeService = inject(ThemeService);
+  private _themeSignal = toSignal(this.themeService.theme$, { 
+    initialValue: 'light' 
+  });
 
-  constructor(public themeService: ThemeService) {}
+  isDarkTheme = computed(() => this._themeSignal() === 'dark');
 
   toggleTheme() {
     this.themeService.toggleTheme();

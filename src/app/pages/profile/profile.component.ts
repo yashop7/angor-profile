@@ -1,8 +1,7 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit, signal, ViewChild, ElementRef } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { BreadcrumbComponent } from '../../components/breadcrumb.component';
 import { FaqItem, RelayService, MemberProfile, BadgeAward } from '../../services/relay.service';
 import { SigningDialogComponent } from '../../components/signing-dialog.component';
 import NDK, {
@@ -54,7 +53,6 @@ interface MediaItem {
   standalone: true,
   imports: [
     CommonModule,
-    BreadcrumbComponent,
     FormsModule,
     SigningDialogComponent,
     DragDropModule,
@@ -67,6 +65,9 @@ interface MediaItem {
 export class ProfileComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private relayService = inject(RelayService);
+
+  @ViewChild('tabsContainer', { static: false }) tabsContainer!: ElementRef<HTMLDivElement>;
+  @ViewChild('projectTextarea', { static: false }) projectTextarea!: ElementRef<HTMLTextAreaElement>;
 
   pubkey!: string;
   npub!: string;
@@ -149,6 +150,79 @@ export class ProfileComponent implements OnInit {
     this.addFaqItem();
     this.checkScreenSize();
     window.addEventListener('resize', () => this.checkScreenSize());
+  }
+
+  private validateUrl(url: string, allowedProtocols: string[]): { isValid: boolean; error: string } {
+    if (!url || url.trim() === '') {
+      return { isValid: true, error: '' };
+    }
+
+    const trimurl = url.trim();
+    
+    const hasValidProtocol = allowedProtocols.some(protocol => trimurl.startsWith(protocol));
+    if (!hasValidProtocol) {
+      const protocolList = allowedProtocols.join(' or ');
+      return { 
+        isValid: false, 
+        error: `URL must start with ${protocolList}` 
+      };
+    }
+
+    try {
+      new URL(trimurl);
+      return { isValid: true, error: '' };
+    } catch {
+      return { 
+        isValid: false, 
+        error: 'Please enter a valid URL format' 
+      };
+    }
+  }
+
+  isValidRelayUrl(): boolean {
+    const result = this.validateUrl(this.newRelayUrl, ['wss://']);
+    return result.isValid;
+  }
+
+  getRelayUrlError(): string {
+    const result = this.validateUrl(this.newRelayUrl, ['wss://']);
+    return result.error;
+  }
+
+  isValidMediaUrl(): boolean {
+    const result = this.validateUrl(this.newMediaUrl, ['https://', 'http://']);
+    return result.isValid;
+  }
+
+  getMediaUrlError(): string {
+    const result = this.validateUrl(this.newMediaUrl, ['https://', 'http://']);
+    return result.error;
+  }
+
+  isValidProofUrl(proofUrl: string): boolean {
+    const result = this.validateUrl(proofUrl, ['https://']);
+    return result.isValid;
+  }
+
+  getProofUrlError(proofUrl: string): string {
+    const result = this.validateUrl(proofUrl, ['https://']);
+    return result.error;
+  }
+
+  isValidWebsiteUrl(): boolean {
+    const result = this.validateUrl(this.profile.website, ['https://', 'http://']);
+    return result.isValid;
+  }
+
+  getWebsiteUrlError(): string {
+    const result = this.validateUrl(this.profile.website, ['https://', 'http://']);
+    return result.error;
+  }
+
+  areAllProofUrlsValid(): boolean {
+    return this.profile.identityTags.every(link => 
+      !link.proof || this.isValidProofUrl(link.proof)
+    );
   }
 
   reloadPage(): void {
@@ -327,6 +401,71 @@ export class ProfileComponent implements OnInit {
     textarea.setSelectionRange(start + prefix.length, end + prefix.length);
   }
 
+  formatProjectText(prefix: string, suffix: string) {
+    const textarea = this.projectTextarea?.nativeElement;
+    if (!textarea) return;
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const selection = textarea.value.substring(start, end);
+    const replacement = prefix + selection + suffix;
+
+    textarea.value =
+      textarea.value.substring(0, start) +
+      replacement +
+      textarea.value.substring(end);
+
+    this.projectContent.content = textarea.value;
+    this.onContentChange();
+
+    textarea.focus();
+    textarea.setSelectionRange(start + prefix.length, end + prefix.length);
+  }
+
+  formatFaqText(faqId: string, prefix: string, suffix: string) {
+    const textarea = document.querySelector(`textarea[data-faq-id="${faqId}"]`) as HTMLTextAreaElement;
+    if (!textarea) {
+      // Fallback: find the active textarea
+      const activeTextarea = document.activeElement as HTMLTextAreaElement;
+      if (activeTextarea && activeTextarea.tagName === 'TEXTAREA') {
+        this.applyTextFormatting(activeTextarea, prefix, suffix, faqId);
+      }
+      return;
+    }
+
+    this.applyTextFormatting(textarea, prefix, suffix, faqId);
+  }
+
+  private applyTextFormatting(textarea: HTMLTextAreaElement, prefix: string, suffix: string, faqId?: string) {
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const selection = textarea.value.substring(start, end);
+    const replacement = prefix + selection + suffix;
+
+    textarea.value =
+      textarea.value.substring(0, start) +
+      replacement +
+      textarea.value.substring(end);
+
+    // Update the model
+    if (faqId) {
+      const faq = this.faqItems.find(f => f.id === faqId);
+      if (faq) {
+        faq.answer = textarea.value;
+      }
+    }
+
+    textarea.focus();
+    textarea.setSelectionRange(start + prefix.length, end + prefix.length);
+  }
+
+  toggleFaqPreview(faqId: string) {
+    const faq = this.faqItems.find(f => f.id === faqId);
+    if (faq) {
+      faq.showPreview = !faq.showPreview;
+    }
+  }
+
   togglePreview() {
     this.showPreview = !this.showPreview;
   }
@@ -344,6 +483,7 @@ export class ProfileComponent implements OnInit {
       id: crypto.randomUUID(),
       question: '',
       answer: '',
+      showPreview: false,
     });
   }
 
@@ -479,12 +619,14 @@ export class ProfileComponent implements OnInit {
   addMedia() {
     if (!this.newMediaUrl) return;
     
-    this.mediaItems.push({
-      url: this.newMediaUrl,
-      type: this.newMediaType
-    });
+    if (this.isValidMediaUrl()) {
+      this.mediaItems.push({
+        url: this.newMediaUrl,
+        type: this.newMediaType
+      });
 
-    this.newMediaUrl = '';
+      this.newMediaUrl = '';
+    }
   }
 
   removeMedia(index: number) {
@@ -498,20 +640,16 @@ export class ProfileComponent implements OnInit {
   addRelay() {
     if (!this.newRelayUrl) return;
     
-    // Basic validation for wss:// or ws:// protocol
-    if (!this.newRelayUrl.startsWith('wss://') && !this.newRelayUrl.startsWith('ws://')) {
-      this.newRelayUrl = 'wss://' + this.newRelayUrl;
-    }
-    
-    if (!this.relays.includes(this.newRelayUrl)) {
+    if (this.isValidRelayUrl() && !this.relays.includes(this.newRelayUrl)) {
       this.relays.push(this.newRelayUrl);
+      this.newRelayUrl = '';
     }
-    
-    this.newRelayUrl = '';
   }
 
   removeRelay(index: number) {
-    this.relays.splice(index, 1);
+    if (this.relays.length > 1) {
+      this.relays.splice(index, 1);
+    }
   }
 
   async applyAndConnect() {
@@ -639,5 +777,98 @@ export class ProfileComponent implements OnInit {
 
   trackById(index: number, item: FaqItem) {
     return item.id;
+  }
+
+  scrollTabsLeft() {
+    if (this.tabsContainer?.nativeElement) {
+      const container = this.tabsContainer.nativeElement;
+      const scrollAmount = container.clientWidth / 2;
+      container.scrollBy({
+        left: -scrollAmount,
+      });
+    }
+  }
+
+  scrollTabsRight() {
+    if (this.tabsContainer?.nativeElement) {
+      const container = this.tabsContainer.nativeElement;
+      const scrollAmount = container.clientWidth / 2;
+      container.scrollBy({
+        left: scrollAmount,
+      });
+    }
+  }
+
+  isValidNpub(npubKey: string): boolean {
+    if (!npubKey || npubKey.trim() === '') return true;
+    const input = npubKey.toLowerCase();
+    if (input.startsWith('npub')) {
+      try {
+        nip19.decode(npubKey);
+        return true;
+      } catch {
+        return false;
+      }
+    }
+    return false;
+  }
+
+  getNpubError(npubKey: string): string {
+    if (!npubKey || npubKey.trim() === '') return '';
+    
+    const input = npubKey.toLowerCase();
+    if (!input.startsWith('npub')) {
+      return 'Must be a valid npub (starts with npub)';
+    }
+    
+    try {
+      nip19.decode(npubKey);
+      return '';
+    } catch {
+      return 'Invalid npub format';
+    }
+  }
+
+  canAddTeamMember(): boolean {
+    if (this.members.pubkeys.length === 0) return true;
+    const lastMemberKey = this.members.pubkeys[this.members.pubkeys.length - 1];
+    if (!lastMemberKey || lastMemberKey.trim() === '') return true;
+    return this.isValidNpub(lastMemberKey);
+  }
+
+  isValidLightningAddress(): boolean {
+    if (!this.profile.lud16 || this.profile.lud16.trim() === '') return true;
+    
+    const address = this.profile.lud16.trim();
+    
+    if (address.toLowerCase().startsWith('lnurl1')) {
+      return address === address.toLowerCase() && address.length > 20 && address.length < 300;
+    }
+    
+    const lightningAddressRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    return lightningAddressRegex.test(address);
+  }
+
+  getLightningAddressError(): string {
+    if (!this.profile.lud16 || this.profile.lud16.trim() === '') return '';
+    
+    const address = this.profile.lud16.trim();
+    
+    if (address.toLowerCase().startsWith('lnurl1')) {
+      if (address !== address.toLowerCase()) {
+        return 'LNURL must be lowercase';
+      }
+      if (address.length <= 20 || address.length >= 300) {
+        return 'Invalid LNURL length';
+      }
+      return '';
+    }
+    
+    const lightningAddressRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    if (!lightningAddressRegex.test(address)) {
+      return 'Please enter a valid lightning address (user@domain.com) or LNURL (lnurl1...)';
+    }
+    
+    return '';
   }
 }

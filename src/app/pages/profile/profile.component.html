@@ -1,12 +1,8 @@
-<section class="hero">
-    <app-breadcrumb [items]="[
-          { label: 'Home', url: '/' },
-          { label: 'Profile', url: '' }
-        ]"></app-breadcrumb>
-    <div class="hero-wrapper">
-        <div class="hero-content">
-            <h1>Profile Settings</h1>
-            <p class="hero-description">
+<section class="bg-background py-4 pb-10">
+    <div class="max-w-6xl mx-auto px-4 md:px-6 lg:px-8">
+        <div class="text-center max-w-3xl mx-auto">
+            <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold text-text my-5 md:mb-6 tracking-tight leading-tight">Profile Settings</h1>
+            <p class="text-lg md:text-xl text-text-secondary leading-relaxed opacity-90">
                 Manage your Nostr profile information that will be displayed on your
                 Angor projects.
             </p>
@@ -15,313 +11,858 @@
 </section>
 
 @if (!profileFound() && !loading) {
-<div class="container">
-    <div class="not-found-message">
-        <h2>Project not found...yet</h2>
-        <p>If you recently created a new Angor project, it might take a few minutes for it to be distributed and indexed
-            on the decentralized infrastructure.</p>
-        <button (click)="reloadPage()" class="cta-button profile-button">
-            Retry
-        </button>
+<div class="px-2 md:px-4 lg:px-8">
+    <div class="flex items-center justify-center">
+        <div class="text-center max-w-lg border border-accent-dark bg-secondary-card p-6 rounded-xl">
+            <div class="size-20 rounded-full bg-accent/10 flex items-center justify-center border-2 border-accent/20 mb-6 mx-auto">
+                <i class="fas fa-search text-2xl text-accent/60"></i>
+            </div>
+            <h2 class="font-semibold text-2xl mb-3">Project not found...yet</h2>
+            <p class="text-text-secondary mb-6">
+                If you recently created a new Angor project, it might take a few minutes for it to be distributed and indexed
+                on the decentralized infrastructure.
+            </p>
+            <div>
+                <button (click)="reloadPage()" class="px-4 py-2 bg-accent text-white rounded-md hover:bg-accent-dark">
+                    <i class="fas fa-refresh mr-2"></i>
+                    Retry
+                </button>
+            </div>
+        </div>
     </div>
 </div>
 } @else {
-<div class="container">
-    <div class="tabs" [class.mobile]="isMobile">
-        <button *ngFor="let tab of tabs" [class.active]="activeTab === tab.id" (click)="setActiveTab(tab.id)">
-            {{ tab.label }}
+<div class="px-2 md:px-4 lg:px-8">
+    <div class="relative mb-8">
+        <button 
+            type="button"
+            aria-label="Previous Tab"
+            class="md:hidden absolute left-2 top-1/2 -translate-y-1/2 z-30 w-8 h-8 flex items-center justify-center bg-surface-card/95 backdrop-blur-sm border border-secondary-border rounded-full text-text-secondary hover:text-text hover:bg-secondary-card shadow-lg"
+            (click)="previousTab()"
+            title="Previous Tab"
+        >
+            <i class="fas fa-chevron-left text-xs"></i>
+        </button>
+
+        <div 
+            #tabsContainer
+            class="flex w-full bg-surface-card border border-secondary-border rounded-lg md:rounded-xl p-1.5 shadow-sm backdrop-blur-sm overflow-x-auto scrollbar-hide md:overflow-visible"
+            style="scrollbar-width: none; -ms-overflow-style: none;"
+        >
+            @for (tab of tabs; track tab.id) {
+                <button 
+                    [class]="'md:flex-1 flex-shrink-0 px-3 py-3 mx-0.5 md:mx-1 text-sm font-semibold rounded-lg md:rounded-xl transition-all duration-300 whitespace-nowrap text-center md:px-6 md:text-base min-w-max ' + 
+                    (activeTab === tab.id ? 
+                        'bg-secondary-card text-text shadow-lg' : 
+                        'text-text-secondary hover:text-text hover:bg-secondary-card/50')"
+                    (click)="setActiveTab(tab.id)">
+                    {{ tab.label }}
+                </button>
+            }
+        </div>
+        <button 
+            type="button"
+            aria-label="Next Tab"
+            title="Next Tab"
+            class="md:hidden absolute right-2 top-1/2 -translate-y-1/2 z-30 w-8 h-8 flex items-center justify-center bg-surface-card/95 backdrop-blur-sm border border-secondary-border rounded-full text-text-secondary hover:text-text hover:bg-secondary-card shadow-lg"
+            (click)="nextTab()"
+        >
+            <i class="fas fa-chevron-right text-xs"></i>
         </button>
     </div>
 
     <div class="tab-content" [ngSwitch]="activeTab">
-        <div *ngSwitchCase="'profile'" class="profile-section">
-            <h2>Basic Information</h2>
-            <div class="form-grid">
-                <div class="form-group">
-                    <label for="name">Username</label>
-                    <input id="name" type="text" [(ngModel)]="profile.name" placeholder="Your username" />
-                </div>
-
-                <div class="form-group">
-                    <label for="displayName">Display Name</label>
-                    <input id="displayName" type="text" [(ngModel)]="profile.displayName"
-                        placeholder="Your display name" />
-                </div>
-
-                <div class="form-group full-width">
-                    <label for="about">About</label>
-                    <textarea id="about" [(ngModel)]="profile.about" placeholder="Tell us about yourself"
-                        rows="4"></textarea>
-                </div>
-
-                <div class="form-group full-width">
-                    <label>Profile Picture</label>
-                    <app-image-upload label="Profile Picture" [imageUrl]="profile.picture"
-                        (urlChanged)="profile.picture = $event"></app-image-upload>
-                </div>
-
-                <div class="form-group full-width">
-                    <label>Banner Image</label>
-                    <app-image-upload label="Banner Image" [imageUrl]="profile.banner"
-                        (urlChanged)="profile.banner = $event"></app-image-upload>
-                </div>
-
-                <div class="form-group">
-                    <label for="nip05">NIP-05 Verification</label>
-                    <input id="nip05" type="text" [(ngModel)]="profile.nip05" placeholder="you@example.com" />
-                </div>
-
-                <div class="form-group">
-                    <label for="lud16">Lightning Address</label>
-                    <input id="lud16" type="text" [(ngModel)]="profile.lud16" placeholder="your@lightning.address" />
-                </div>
-
-                <div class="form-group">
-                    <label for="website">Website</label>
-                    <input id="website" type="url" [(ngModel)]="profile.website"
-                        placeholder="https://your-website.com" />
-                </div>
-            </div>
-        </div>
-
-        <div *ngSwitchCase="'project'" class="profile-section">
-            <h2>Project Description</h2>
-            <p class="helper-text">
-                Write a detailed description of your project. This will be displayed
-                as your main project content.
-            </p>
-
-            <div class="editor-container">
-                <div class="editor-toolbar">
-                    <button class="tool-button" (click)="formatText('**', '**')" title="Bold">
-                        B
-                    </button>
-                    <button class="tool-button" (click)="formatText('*', '*')" title="Italic">
-                        I
-                    </button>
-                    <button class="tool-button" (click)="formatText('### ', '')" title="Heading">
-                        H
-                    </button>
-                    <button class="tool-button" (click)="formatText('- ', '')" title="List Item">
-                        •
-                    </button>
-                    <button class="tool-button" (click)="formatText('[', '](url)')" title="Link">
-                        🔗
-                    </button>
-                </div>
-
-                <div class="textarea-wrapper">
-                    <textarea [(ngModel)]="projectContent.content"
-                        placeholder="Write your project description here... Use Markdown for formatting." rows="20"
-                        (input)="onContentChange()"></textarea>
-
-                    <div *ngIf="projectContent.lastUpdated" class="last-updated">
-                        Last updated: {{ formatDate(projectContent.lastUpdated) }}
+        <div *ngSwitchCase="'profile'" class="bg-surface-card rounded-lg md:rounded-xl space-y-6 p-4 md:p-8">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-12">
+                <div class="md:col-span-1">
+                    <div class="card bg-secondary-card border border-secondary-border overflow-hidden rounded-xl transition-all duration-300">
+                        <div class="w-full p-4">
+                            <app-image-upload 
+                                label="Profile Picture" 
+                                aspectRatio="1"
+                                [imageUrl]="profile.picture"
+                                (urlChanged)="profile.picture = $event">
+                            </app-image-upload>
+                        </div>
                     </div>
                 </div>
 
-                <div class="preview-toggle">
-                    <button (click)="togglePreview()" class="secondary-button">
-                        {{ showPreview ? 'Edit' : 'Preview' }}
-                    </button>
-                </div>
+                <div class="md:col-span-2">
+                    <div class="card bg-secondary-card rounded-xl  shadow-xl transition-all duration-300 h-full">
+                        <div class="p-4 md:p-8 bg-secondary-card rounded-xl ">
+                            <h2 class="text-2xl font-semibold mb-8 flex items-center text-text">
+                                <i class="fas fa-user mr-3 text-accent"></i>
+                                Basic Information
+                            </h2>
 
-                <div *ngIf="showPreview" class="markdown-preview">
-                    <!-- TODO: Add markdown preview rendering -->
-                    <markdown [data]="projectContent.content"></markdown>
-                    <!-- <pre>{{ projectContent.content }}</pre> -->
-                </div>
-            </div>
-        </div>
+                            <div class="space-y-8">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                    <div class="space-y-3">
+                                        <label for="name" class="text-base font-medium text-text-secondary">Username</label>
+                                        <input id="name" type="text" [(ngModel)]="profile.name" 
+                                            class=" border-secondary-border bg-transparent focus:border-secondary-border h-12 text-text rounded-3xl transition-all duration-200 w-full px-4"
+                                            placeholder="Your username" />
+                                    </div>
+                                    <div class="space-y-3">
+                                        <label for="displayName" class="text-base font-medium text-text-secondary">Display Name</label>
+                                        <input id="displayName" type="text" [(ngModel)]="profile.displayName"
+                                            class="input border-secondary-border bg-transparent focus:border-secondary-border h-12 text-text rounded-3xl transition-all duration-200 w-full px-4"
+                                            placeholder="Your display name" />
+                                    </div>
+                                </div>
 
-        <div *ngSwitchCase="'faq'" class="profile-section">
-            <h2>Frequently Asked Questions</h2>
-            <p class="helper-text">
-                Add questions and answers that will help users understand your
-                project better.
-            </p>
-
-            <div class="faq-container">
-                <div *ngFor="let faq of faqItems; trackBy: trackById" class="faq-item">
-                    <div class="faq-header">
-                        <button class="delete-button" (click)="deleteFaqItem(faq.id)" title="Delete question">
-                            ×
-                        </button>
-                    </div>
-                    <div class="form-group">
-                        <label>Question</label>
-                        <input type="text" [(ngModel)]="faq.question" placeholder="Enter your question" />
-                    </div>
-                    <div class="form-group">
-                        <label>Answer</label>
-                        <textarea [(ngModel)]="faq.answer" rows="4" placeholder="Enter your answer"></textarea>
-                    </div>
-                </div>
-
-                <button class="add-faq-button" (click)="addFaqItem()">
-                    + Add New Question
-                </button>
-            </div>
-        </div>
-
-        <div *ngSwitchCase="'members'" class="profile-section">
-            <h2>Team Members</h2>
-            <p class="helper-text">
-                Add Nostr public keys of team members, their profiles will be listed on the project page. This does not
-                give them permissions to edit the project.
-            </p>
-
-            <div class="members-container">
-                <div *ngFor="
-                  let pubkey of members.pubkeys;
-                  let i = index;
-                  trackBy: trackByIndex
-                " class="member-item">
-                    <div class="member-input-group">
-                        <input type="text" [(ngModel)]="members.pubkeys[i]" (ngModelChange)="onMemberKeyChange(i)"
-                            placeholder="npub..." class="member-input" />
-                        <button class="delete-button" (click)="removeMember(i)">×</button>
-                    </div>
-
-                    <div *ngIf="memberProfiles[pubkey]" class="member-profile">
-                        <img *ngIf="memberProfiles[pubkey].picture" [src]="memberProfiles[pubkey].picture"
-                            class="member-avatar" alt="Profile picture" />
-                        <div class="member-info">
-                            <div class="member-name">
-                                {{ memberProfiles[pubkey].displayName || memberProfiles[pubkey].name }}
-                            </div>
-                            <div class="member-nip05" *ngIf="memberProfiles[pubkey].nip05">
-                                ✓ {{ memberProfiles[pubkey].nip05 }}
-                            </div>
-                            <div class="member-about" *ngIf="memberProfiles[pubkey].about">
-                                {{ memberProfiles[pubkey].about }}
+                                <div class="space-y-3">
+                                    <label for="about" class="text-base font-medium text-text-secondary">About</label>
+                                    <textarea id="about" [(ngModel)]="profile.about" 
+                                        class="textarea border-secondary-border focus:border-secondary-border min-h-[240px] text-text rounded-3xl transition-all duration-200 w-full px-4 py-3"
+                                        placeholder="Tell us about yourself"></textarea>
+                                </div>
                             </div>
                         </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card bg-surface-card border border-secondary-border overflow-hidden rounded-xl shadow-xl transition-all duration-300">
+                <div class="bg-secondary-card overflow-hidden p-4">
+                    <div class="w-full">
+                        <app-image-upload 
+                            label="Banner Image" 
+                            aspectRatio="16/9"
+                            [imageUrl]="profile.banner"
+                            (urlChanged)="profile.banner = $event">
+                        </app-image-upload>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card bg-surface-card rounded-xl shadow-xl transition-all duration-300">
+                <div class="p-4 md:p-8 bg-secondary-card rounded-xl">
+                    <h2 class="text-2xl font-semibold mb-8 text-text">Additional Information</h2>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                        <div class="space-y-3">
+                            <label for="nip05" class="text-base font-medium flex items-center text-text-secondary">
+                                <i class="fas fa-at mr-2 text-accent"></i>
+                                NIP-05 Verification
+                            </label>
+                            <input id="nip05" type="text" [(ngModel)]="profile.nip05"
+                                class="input border-secondary-border bg-transparent focus:border-secondary-border h-12 text-text rounded-lg transition-all duration-200 w-full px-4"
+                                placeholder="you@example.com" />
+                        </div>
+
+                        <div class="space-y-3">
+                            <label for="lud16" class="text-base font-medium flex items-center text-text-secondary">
+                                <i class="fas fa-bolt mr-2 text-accent"></i>
+                                Lightning Address
+                            </label>
+                            <input id="lud16" type="text" [(ngModel)]="profile.lud16"
+                                [class]="'input border bg-transparent focus:border-secondary-border h-12 text-text rounded-lg transition-all duration-200 w-full px-4 ' + 
+                                        (profile.lud16 && !isValidLightningAddress() ? 'border-red-500 focus:border-red-500' : 'border-secondary-border')"
+                                placeholder="your@lightning.address" />
+                            @if (getLightningAddressError()) {
+                              <div class="flex items-center gap-1 text-red-500 text-xs mt-1 font-medium">
+                                <i class="fas fa-exclamation-circle"></i>
+                                {{ getLightningAddressError() }}
+                              </div>
+                            }
+                        </div>
+
+                        <div class="space-y-3">
+                            <label for="website" class="text-base font-medium flex items-center text-text-secondary">
+                                <i class="fas fa-globe mr-2 text-accent"></i>
+                                Website
+                            </label>
+                            <input id="website" type="url" [(ngModel)]="profile.website"
+                                [class]="'input border bg-transparent focus:border-secondary-border h-12 text-text rounded-lg transition-all duration-200 w-full px-4 ' + 
+                                        (profile.website && !isValidWebsiteUrl() ? 'border-red-500 focus:border-red-500' : 'border-secondary-border')"
+                                placeholder="https://your-website.com" />
+                            @if (getWebsiteUrlError()) {
+                              <div class="flex items-center gap-1 text-red-500 text-xs mt-1 font-medium">
+                                <i class="fas fa-exclamation-circle"></i>
+                                {{ getWebsiteUrlError() }}
+                              </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div *ngSwitchCase="'project'" class="bg-surface-card rounded-lg md:rounded-xl p-4 md:p-8">
+            <div class="card bg-surface-card rounded-xl shadow-xl transition-all duration-300">
+                <div class="p-4 md:p-8 bg-secondary-card rounded-xl">
+                    <h2 class="text-2xl font-semibold mb-2 text-text flex items-center">
+                        <i class="fas fa-file-alt mr-3 text-accent"></i>
+                        Project Description
+                    </h2>
+                    <p class="text-text-secondary mb-8">
+                        Write a detailed description of your project. This will be displayed as your main project content. Full markdown support included.
+                    </p>
+
+                    <div class="space-y-6">
+                        <div class="bg-surface-card border border-secondary-border rounded-lg p-3">
+                            <div class="flex items-center justify-between gap-2">
+                                <div class="flex items-center gap-1 flex-wrap">
+                                    <button type="button" class="size-8 md:size-9 flex items-center justify-center rounded-md hover:bg-accent/20 text-text-secondary hover:text-text transition-colors duration-200" (click)="formatProjectText('**', '**')" title="Bold">
+                                        <i class="fas fa-bold text-sm"></i>
+                                    </button>
+                                    <button type="button" class="size-8 md:size-9 flex items-center justify-center rounded-md hover:bg-accent/20 text-text-secondary hover:text-text transition-colors duration-200" (click)="formatProjectText('*', '*')" title="Italic">
+                                        <i class="fas fa-italic text-sm"></i>
+                                    </button>
+                                    <button type="button" class="size-8 md:size-9 flex items-center justify-center rounded-md hover:bg-accent/20 text-text-secondary hover:text-text transition-colors duration-200" (click)="formatProjectText('### ', '')" title="Heading">
+                                        <i class="fas fa-heading text-sm"></i>
+                                    </button>
+                                    <button type="button" class="size-8 md:size-9 flex items-center justify-center rounded-md hover:bg-accent/20 text-text-secondary hover:text-text transition-colors duration-200" (click)="formatProjectText('- ', '')" title="List">
+                                        <i class="fas fa-list-ul text-sm"></i>
+                                    </button>
+                                    <button type="button" class="size-8 md:size-9 flex items-center justify-center rounded-md hover:bg-accent/20 text-text-secondary hover:text-text transition-colors duration-200" (click)="formatProjectText('1. ', '')" title="Numbered List">
+                                        <i class="fas fa-list-ol text-sm"></i>
+                                    </button>
+                                    <button type="button" class="size-8 md:size-9 flex items-center justify-center rounded-md hover:bg-accent/20 text-text-secondary hover:text-text transition-colors duration-200" (click)="formatProjectText('[', '](url)')" title="Link">
+                                        <i class="fas fa-link text-sm"></i>
+                                    </button>
+                                    <button type="button" class="size-8 md:size-9 flex items-center justify-center rounded-md hover:bg-accent/20 text-text-secondary hover:text-text transition-colors duration-200" (click)="formatProjectText('![', '](image-url)')" title="Image">
+                                        <i class="fas fa-image text-sm"></i>
+                                    </button>
+                                    <button type="button" class="size-8 md:size-9 flex items-center justify-center rounded-md hover:bg-accent/20 text-text-secondary hover:text-text transition-colors duration-200" (click)="formatProjectText('`', '`')" title="Code">
+                                        <i class="fas fa-code text-sm"></i>
+                                    </button>
+                                    <button type="button" class="size-8 md:size-9 flex items-center justify-center rounded-md hover:bg-accent/20 text-text-secondary hover:text-text transition-colors duration-200" (click)="formatProjectText('```\n', '\n```')" title="Code Block">
+                                        <i class="fas fa-file-code text-sm"></i>
+                                    </button>
+                                    <button type="button" class="size-8 md:size-9 flex items-center justify-center rounded-md hover:bg-accent/20 text-text-secondary hover:text-text transition-colors duration-200" (click)="formatProjectText('> ', '')" title="Quote">
+                                        <i class="fas fa-quote-left text-sm"></i>
+                                    </button>
+                                </div>
+                                <button 
+                                    type="button"
+                                    [class]="'h-8 px-3 md:h-9 md:px-4 flex items-center justify-center gap-2 rounded-md font-medium border border-secondary-border transition-colors duration-200 text-sm ' + (showPreview ? 'bg-accent text-white' : 'bg-background hover:bg-accent/20 text-text-secondary hover:text-text')"
+                                    (click)="togglePreview()"
+                                    title="Toggle Preview"
+                                >
+                                    <i class="fas fa-eye text-sm"></i>
+                                    <span class="hidden sm:inline">{{ showPreview ? 'Edit' : 'Preview' }}</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="relative">
+                            <div *ngIf="!showPreview">
+                                <textarea 
+                                    #projectTextarea
+                                    [(ngModel)]="projectContent.content"
+                                    (input)="onContentChange()"
+                                    class="w-full min-h-[350px] md:min-h-[450px] p-3 md:p-4 rounded-lg bg-surface-card border border-secondary-border focus:border-accent text-text text-sm md:text-base resize-y transition-all duration-200 placeholder:text-text-secondary/50 font-mono"
+                                    placeholder="Write your project description here... Use Markdown for formatting.
+
+# Project Title
+## Introduction
+Your project description with **bold** and *italic* text.
+
+### Features
+- Feature 1
+- Feature 2
+
+### Code Example
+```javascript
+console.log('Hello World');
+```
+
+> Quote or important note
+
+[Link to documentation](https://example.com)
+![Project Image](https://example.com/image.jpg)"
+                                ></textarea>
+                                <div *ngIf="projectContent.lastUpdated" class="text-text-secondary text-xs md:text-sm mt-3">
+                                    Last updated: {{ formatDate(projectContent.lastUpdated) }}
+                                </div>
+                            </div>
+
+                            <div *ngIf="showPreview" class="w-full min-h-[350px] md:min-h-[450px] p-3 md:p-4 rounded-lg bg-surface-card border border-secondary-border text-text text-sm md:text-base overflow-auto">
+                                <div class="prose prose-sm md:prose-base max-w-none dark:prose-invert prose-headings:text-text prose-p:text-text prose-a:text-accent prose-strong:text-text prose-em:text-text prose-code:text-accent prose-pre:bg-background prose-pre:border prose-pre:border-secondary-border prose-blockquote:border-l-accent prose-blockquote:text-text-secondary prose-li:text-text">
+                                    <markdown [data]="projectContent.content || '*No content yet. Click Edit to start writing.*'"></markdown>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div *ngSwitchCase="'faq'" class="bg-surface-card rounded-lg md:rounded-xl p-4 md:p-8">
+            <div class="bg-secondary-card border border-secondary-border rounded-2xl shadow-2xl p-4 sm:p-8">
+                <h2 class="text-2xl font-bold mb-2 text-text flex items-center gap-2 tracking-tight">
+                    <i class="fas fa-question-circle text-accent"></i>
+                    Frequently Asked Questions
+                </h2>
+                <p class="text-text-secondary mb-6">
+                    Add questions and answers that will help users understand your project better. Answers support full markdown formatting.
+                </p>
+
+                <div class="space-y-8">
+                    @for (faq of faqItems; track faq.id) {
+                    <div class="relative bg-secondary-card border border-secondary-border rounded-xl shadow-md p-6 md:p-10 group transition-all duration-200 hover:border-secondary-border hover:shadow-lg">
                         <button 
-                            class="badge-button" 
-                            [disabled]="memberBadges[memberProfiles[pubkey].pubkey] || issuingBadge[memberProfiles[pubkey].pubkey]"
-                            (click)="issueBadge(memberProfiles[pubkey].pubkey)"
+                            type="button"
+                            (click)="deleteFaqItem(faq.id)" 
+                            title="Delete question"
+                            class="absolute top-4 right-4 h-8 w-8 flex items-center justify-center rounded-full bg-background border border-border text-text-secondary transition-all duration-300 hover:bg-accent hover:text-white focus:outline-none focus:ring-2 focus:ring-accent"
                         >
-                            {{ issuingBadge[memberProfiles[pubkey].pubkey] ? 'Issuing...' : 
-                               memberBadges[memberProfiles[pubkey].pubkey] ? 'Badge Issued' : 'Issue Badge' }}
+                            <i class="fas fa-times text-sm"></i>
+                        </button>
+                        <div class="mb-6">
+                            <label class="block text-text-secondary font-semibold mb-2 tracking-wide">Question</label>
+                            <input 
+                                type="text" 
+                                [(ngModel)]="faq.question" 
+                                placeholder="Enter your question" 
+                                class="w-full bg-background border border-secondary-border focus:border-secondary-border text-text rounded-lg px-4 py-3 transition-all duration-200 text-base placeholder:text-text-secondary/40 shadow-inner"
+                            />
+                        </div>
+                        <div class="space-y-4">
+                            <div class="flex items-center justify-between">
+                                <label class="block text-text-secondary font-semibold tracking-wide">Answer</label>
+                                <div class="flex items-center gap-2">
+                                    <button 
+                                        type="button"
+                                        [class]="'h-8 px-3 flex items-center justify-center gap-2 rounded-md font-medium border border-secondary-border transition-colors duration-200 text-xs ' + (faq.showPreview ? 'bg-accent text-white' : 'bg-background hover:bg-accent/20 text-text-secondary hover:text-text')"
+                                        (click)="toggleFaqPreview(faq.id)"
+                                        title="Toggle Preview"
+                                    >
+                                        <i class="fas fa-eye text-xs"></i>
+                                        <span>{{ faq.showPreview ? 'Edit' : 'Preview' }}</span>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-surface-card border border-secondary-border rounded-lg p-3" *ngIf="!faq.showPreview">
+                                <div class="flex items-center gap-1 flex-wrap mb-3">
+                                    <button type="button" class="size-7 flex items-center justify-center rounded-md hover:bg-accent/20 text-text-secondary hover:text-text transition-colors duration-200" (click)="formatFaqText(faq.id, '**', '**')" title="Bold">
+                                        <i class="fas fa-bold text-xs"></i>
+                                    </button>
+                                    <button type="button" class="size-7 flex items-center justify-center rounded-md hover:bg-accent/20 text-text-secondary hover:text-text transition-colors duration-200" (click)="formatFaqText(faq.id, '*', '*')" title="Italic">
+                                        <i class="fas fa-italic text-xs"></i>
+                                    </button>
+                                    <button type="button" class="size-7 flex items-center justify-center rounded-md hover:bg-accent/20 text-text-secondary hover:text-text transition-colors duration-200" (click)="formatFaqText(faq.id, '### ', '')" title="Heading">
+                                        <i class="fas fa-heading text-xs"></i>
+                                    </button>
+                                    <button type="button" class="size-7 flex items-center justify-center rounded-md hover:bg-accent/20 text-text-secondary hover:text-text transition-colors duration-200" (click)="formatFaqText(faq.id, '- ', '')" title="List">
+                                        <i class="fas fa-list-ul text-xs"></i>
+                                    </button>
+                                    <button type="button" class="size-7 flex items-center justify-center rounded-md hover:bg-accent/20 text-text-secondary hover:text-text transition-colors duration-200" (click)="formatFaqText(faq.id, '[', '](url)')" title="Link">
+                                        <i class="fas fa-link text-xs"></i>
+                                    </button>
+                                    <button type="button" class="size-7 flex items-center justify-center rounded-md hover:bg-accent/20 text-text-secondary hover:text-text transition-colors duration-200" (click)="formatFaqText(faq.id, '`', '`')" title="Code">
+                                        <i class="fas fa-code text-xs"></i>
+                                    </button>
+                                    <button type="button" class="size-7 flex items-center justify-center rounded-md hover:bg-accent/20 text-text-secondary hover:text-text transition-colors duration-200" (click)="formatFaqText(faq.id, '> ', '')" title="Quote">
+                                        <i class="fas fa-quote-left text-xs"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div *ngIf="!faq.showPreview">
+                                <textarea 
+                                    [(ngModel)]="faq.answer" 
+                                    rows="6" 
+                                    [attr.data-faq-id]="faq.id"
+                                    placeholder="Enter your answer with markdown support...
+
+**Bold text** and *italic text*
+- List items
+- Another item
+
+```code
+Code blocks supported
+```
+
+> Blockquotes for important notes
+
+[Links](https://example.com) work too!"
+                                    class="w-full bg-background border border-secondary-border focus:border-secondary-border text-text rounded-lg px-4 py-3 transition-all duration-200 font-mono text-sm placeholder:text-text-secondary/40 resize-y shadow-inner"
+                                ></textarea>
+                            </div>
+                            
+                            <div *ngIf="faq.showPreview" class="w-full min-h-[150px] p-4 rounded-lg bg-background border border-secondary-border">
+                                <div class="prose prose-sm max-w-none dark:prose-invert prose-headings:text-text prose-p:text-text prose-a:text-accent prose-strong:text-text prose-em:text-text prose-code:text-accent prose-pre:bg-surface-card prose-pre:border prose-pre:border-secondary-border prose-blockquote:border-l-accent prose-blockquote:text-text-secondary prose-li:text-text">
+                                    <markdown [data]="faq.answer || '*No answer yet. Click Edit to start writing.*'"></markdown>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    }
+                    <div class="flex justify-center">
+                        <button 
+                            type="button"
+                            class="flex items-center gap-2 bg-background border border-secondary-border hover:bg-accent hover:text-white text-text-secondary font-semibold rounded-xl px-6 py-3 shadow transition-all duration-200 text-base tracking-wide"
+                            (click)="addFaqItem()"
+                        >
+                            <i class="fas fa-plus"></i>
+                            Add New Question
                         </button>
                     </div>
                 </div>
-
-                <button class="add-member-button" (click)="addMember()">
-                    + Add Team Member
-                </button>
             </div>
         </div>
 
-        <div *ngSwitchCase="'links'" class="profile-section">
-            <h2>External Identities</h2>
-            <p class="helper-text">
-                Link your external identities and social media accounts. Add proof links to verify ownership.
-            </p>
+        <div *ngSwitchCase="'members'" class="bg-surface-card rounded-lg md:rounded-xl p-4 md:p-8">
+            <div class="bg-secondary-card border border-secondary-border rounded-xl shadow-xl space-y-3 p-3 py-5 md:p-6">
+                <h2 class="text-xl font-semibold mb-4 text-text flex items-center">
+                    <i class="fas fa-users mr-2 text-accent"></i>
+                    Team Members
+                </h2>
+                <p class="text-text-secondary mb-6">
+                    Add Nostr public keys of team members, their profiles will be listed on the project page. This does not
+                    give them permissions to edit the project.
+                </p>
 
-            <div class="links-container">
-                <div *ngFor="let link of profile.identityTags; let i = index" class="link-item">
-                    <div class="link-inputs">
-                        <select [(ngModel)]="link.platform" class="platform-select" autocomplete="off">
-                            <option value="">Select Platform</option>
-                            <option *ngFor="let platform of platformSuggestions" [value]="platform">
-                                {{platform}}
-                            </option>
-                            <option value="custom">Custom</option>
+        <div class="space-y-6">
+          <div class="space-y-3">
+            @if (members.pubkeys.length > 0) {
+              <div class="space-y-4">
+                @for (pubkey of members.pubkeys; track $index; let i = $index) {
+                  <div class="rounded-lg p-2 md:p-4 border border-secondary-border space-y-4">
+                    <div class="flex items-center gap-3">
+                      <div class="flex-1">
+                        <input
+                          type="text"
+                          [(ngModel)]="members.pubkeys[i]"
+                          (ngModelChange)="onMemberKeyChange(i)"
+                          placeholder="npub..."
+                          [class]="'w-full bg-background border focus:border-secondary-border text-text rounded-lg px-4 py-1 transition-all duration-200 ' +
+                            (members.pubkeys[i] && !isValidNpub(members.pubkeys[i]) ? 'border-red-500 focus:border-red-500' : 'border-secondary-border')"
+                        />
+                        @if (getNpubError(members.pubkeys[i])) {
+                          <div class="flex items-center gap-1 text-red-500 text-xs mt-1 font-medium">
+                            <i class="fas fa-exclamation-circle"></i>
+                            {{ getNpubError(members.pubkeys[i]) }}
+                          </div>
+                        }
+                      </div>
+                      <button
+                        (click)="removeMember(i)"
+                        title="Remove member"
+                        class="size-11 p-0 rounded-lg hover:bg-accent/20 text-text-secondary flex items-center justify-center transition-all duration-200 border border-border/40 dark:border-border"
+                      >
+                        <i class="fas fa-times"></i>
+                      </button>
+                    </div>
+
+                    @if (memberProfiles[pubkey]) {
+                      <div class="bg-background rounded-xl p-4 sm:p-6 border border-secondary-border shadow-lg overflow-hidden">
+                        <div class="flex flex-col space-y-4">
+                          <div class="flex flex-col sm:flex-row sm:items-start space-y-4 sm:space-y-0 sm:space-x-4 lg:space-x-6">
+                            <div class="flex justify-center sm:justify-start flex-shrink-0">
+                              <img *ngIf="memberProfiles[pubkey].picture"
+                                [src]="memberProfiles[pubkey].picture"
+                                class="w-12 h-12 sm:w-16 sm:h-16 rounded-full object-cover border-2 border-secondary-border shadow-lg"
+                                alt="Profile picture" />
+                              <div *ngIf="!memberProfiles[pubkey].picture"
+                                class="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-gradient-to-br from-accent to-accent-dark flex items-center justify-center border-2 border-secondary-border shadow-lg">
+                                <i class="fas fa-user text-white text-sm sm:text-xl"></i>
+                              </div>
+                            </div>
+
+                            <div class="flex-1 min-w-0 text-center sm:text-left">
+                              <div class="text-text font-semibold text-base sm:text-lg mb-1 truncate">
+                                {{ memberProfiles[pubkey].displayName || memberProfiles[pubkey].name || 'Unknown User' }}
+                              </div>
+                              <div class="text-accent text-xs sm:text-sm font-medium mb-2 truncate" *ngIf="memberProfiles[pubkey].nip05">
+                                <i class="fas fa-check-circle mr-1"></i>
+                                {{ memberProfiles[pubkey].nip05 }}
+                              </div>
+                              <div class="text-text-secondary text-xs sm:text-sm leading-relaxed line-clamp-3" *ngIf="memberProfiles[pubkey].about">
+                                {{ memberProfiles[pubkey].about }}
+                              </div>
+                              <div class="text-text-secondary/60 text-xs sm:text-sm italic" *ngIf="!memberProfiles[pubkey].about">
+                                No bio available
+                              </div>
+                            </div>
+                          </div>
+
+                          <div class="flex justify-center sm:justify-end pt-2">
+                            <button
+                              class="bg-gradient-to-r from-accent to-accent-dark hover:from-accent-dark hover:to-accent text-white rounded-lg px-4 sm:px-6 py-2 sm:py-3 transition-all duration-300 text-xs sm:text-sm font-medium shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                              [disabled]="memberBadges[memberProfiles[pubkey].pubkey] || issuingBadge[memberProfiles[pubkey].pubkey]"
+                              (click)="issueBadge(memberProfiles[pubkey].pubkey)"
+                            >
+                              <i class="fas fa-award mr-1 sm:mr-2 text-xs sm:text-sm"></i>
+                              <span class="truncate">
+                                {{ issuingBadge[memberProfiles[pubkey].pubkey] ? 'Issuing...' :
+                                   memberBadges[memberProfiles[pubkey].pubkey] ? 'Badge Issued' : 'Issue Badge' }}
+                              </span>
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
+            } @else {
+              <div class="p-8 text-center border border-dashed border-black dark:border-secondary-border rounded-xl bg-surface-card">
+                <i class="fas fa-users text-accent/40 text-4xl mb-3"></i>
+                <p class="text-text-secondary">
+                  No team members added yet
+                </p>
+                <p class="text-text-secondary/40 text-sm mt-1">
+                  Add team members to display on your project page
+                </p>
+              </div>
+            }
+          </div>
+
+          <button
+            (click)="addMember()"
+            [disabled]="!canAddTeamMember()"
+            class="w-full bg-accent hover:bg-accent-dark disabled:bg-accent/50 disabled:cursor-not-allowed text-white rounded-lg px-4 py-3 transition-all duration-200 flex items-center justify-center"
+          >
+            <i class="fas fa-user-plus mr-2"></i>
+            Add Team Member
+          </button>
+        </div>
+      </div>
+    </div>
+
+        <div *ngSwitchCase="'links'" class="bg-surface-card rounded-lg md:rounded-xl p-4 md:p-8">
+          <div class="bg-secondary-card border border-secondary-border rounded-2xl shadow-2xl">
+            <div class="p-4 sm:p-6 md:p-8">
+              <div class="flex flex-col gap-4 mb-6 sm:mb-8">
+                <div class="text-center sm:text-left">
+                  <h2 class="text-xl sm:text-2xl font-bold text-text flex items-center justify-center sm:justify-start gap-2 tracking-tight">
+                    <i class="fas fa-link text-accent"></i>
+                    Project Links
+                  </h2>
+                  <p class="text-text-secondary mt-2 text-sm sm:text-base leading-relaxed">
+                    Link your external identities and social media accounts. Add proof links to verify ownership.
+                  </p>
+                </div>
+              </div>
+
+              <div class="space-y-4 sm:space-y-6">
+                @if (profile.identityTags.length) {
+                  @for (link of profile.identityTags; track $index; let i = $index) {
+                  <div
+                    class="bg-background border border-secondary-border rounded-xl shadow-md p-4 sm:p-6 transition-all duration-200 hover:shadow-lg group"
+                  >
+                    <div class="flex justify-between items-center mb-4 sm:mb-6">
+                      <h3 class="text-text font-semibold text-base sm:text-lg tracking-wide">
+                        Link #{{ i + 1 }}
+                      </h3>
+                      <button
+                        (click)="removeIdentityLink(i)"
+                        [disabled]="profile.identityTags.length <= 1"
+                        class="h-8 w-8 sm:h-10 sm:w-10 rounded-full hover:bg-accent hover:text-white text-text-secondary flex items-center justify-center transition-all duration-200 border border-secondary-border group-hover:border-accent/30 focus:outline-none focus:ring-2 focus:ring-accent"
+                        type="button"
+                        title="Remove link"
+                      >
+                        <i class="fas fa-times text-sm"></i>
+                      </button>
+                    </div>
+                    
+                    <div class="space-y-4 lg:space-y-0 lg:grid lg:grid-cols-3 lg:gap-6">
+                      <div class="space-y-2 sm:space-y-3">
+                        <label class="block text-text-secondary font-semibold tracking-wide text-sm" [for]="'platform-' + i">
+                          Platform
+                        </label>
+                        <select
+                          [(ngModel)]="link.platform"
+                          class="w-full h-11 sm:h-12 bg-secondary-card border dark:border-secondary-border focus:border-accent focus:ring-2 focus:ring-accent/20 text-text rounded-xl px-3 sm:px-4 pr-10 transition-all duration-200 appearance-none text-sm sm:text-base"
+                          title="Platform"
+                          [id]="'platform-' + i"
+                          autocomplete="off"
+                        >
+                          <option value="">Select Platform</option>
+                          @for (platform of platformSuggestions; track platform) {
+                          <option [value]="platform">
+                            {{ platform }}
+                          </option>
+                          }
+                          <option value="custom">Custom</option>
                         </select>
-
-                        <input type="text" [(ngModel)]="link.identity" placeholder="Username or ID"
-                            class="identity-input" autocomplete="off" />
-
-                        <input type="text" [(ngModel)]="link.proof" placeholder="Proof URL or identifier"
-                            class="proof-input" autocomplete="off" />
+                      </div>
+                      
+                      <div class="space-y-2 sm:space-y-3">
+                        <label class="block text-text-secondary font-semibold tracking-wide text-sm" [for]="'identity-' + i">
+                          Username or ID
+                        </label>
+                        <input
+                          type="text"
+                          [(ngModel)]="link.identity"
+                          [id]="'identity-' + i"
+                          placeholder="Username or ID"
+                          class="w-full h-11 sm:h-12 bg-background border border-secondary-border focus:border-accent focus:ring-2 focus:ring-accent/20 text-text rounded-xl px-3 sm:px-4 transition-all duration-200 placeholder:text-text-secondary/50 text-sm sm:text-base"
+                          autocomplete="off"
+                        />
+                      </div>
+                      
+                      <div class="space-y-2 sm:space-y-3">
+                        <label class="block text-text-secondary font-semibold tracking-wide text-sm" [for]="'proof-' + i">
+                          Proof URL or Identifier
+                        </label>
+                        <input
+                          type="text"
+                          [(ngModel)]="link.proof"
+                          [id]="'proof-' + i"
+                          placeholder="Proof URL or identifier"
+                          [class]="'w-full h-11 sm:h-12 bg-background border focus:border-accent focus:ring-2 focus:ring-accent/20 text-text rounded-xl px-3 sm:px-4 transition-all duration-200 placeholder:text-text-secondary/50 text-sm sm:text-base ' + 
+                                  (link.proof && !isValidProofUrl(link.proof) ? 'border-red-500 focus:border-red-500' : 'border-secondary-border')"
+                          autocomplete="off"
+                        />
+                        @if (getProofUrlError(link.proof)) {
+                          <div class="flex items-center gap-1 text-red-500 text-xs mt-1 font-medium">
+                            <i class="fas fa-exclamation-circle"></i>
+                            {{ getProofUrlError(link.proof) }}
+                          </div>
+                        }
+                      </div>
                     </div>
-
-                    <button class="delete-button" (click)="removeIdentityLink(i)">×</button>
+                  </div>
+                  }
+                  
+                  <div class="flex justify-center pt-2 sm:pt-4">
+                    <button
+                      [disabled]="!areAllProofUrlsValid()"
+                      class="flex items-center justify-center gap-2 bg-background border border-secondary-border hover:bg-accent hover:text-white disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed text-text-secondary font-semibold rounded-xl px-4 sm:px-6 py-3 shadow transition-all duration-200 hover:shadow-lg w-full sm:w-auto text-sm sm:text-base"
+                      (click)="addIdentityLink()"
+                      type="button"
+                    >
+                      <i class="fas fa-plus-circle"></i>
+                      Add Another Link
+                    </button>
+                  </div>
+                } @else {
+                <div class="text-center">
+                  <div class="bg-surface-card border border-dashed border-secondary-border rounded-2xl p-6 sm:p-8">
+                    <i class="fas fa-link text-accent/40 text-3xl sm:text-4xl mb-3 sm:mb-4"></i>
+                    <h3 class="text-text font-semibold text-base sm:text-lg mb-2">No Project Links</h3>
+                    <p class="text-text-secondary mb-4 sm:mb-6 text-sm sm:text-base leading-relaxed max-w-md mx-auto">
+                      Add links to your social media accounts and external identities to build trust with your audience.
+                    </p>
+                    <button
+                      (click)="addIdentityLink()"
+                      class="flex items-center justify-center gap-2 bg-accent hover:bg-accent-dark text-white px-4 sm:px-6 py-3 rounded-xl font-semibold transition-all duration-200 shadow-lg hover:shadow-xl mx-auto w-full sm:w-auto text-sm sm:text-base"
+                      type="button"
+                    >
+                      <i class="fas fa-plus-circle"></i>
+                      Add Your First Link
+                    </button>
+                  </div>
                 </div>
-
-                <button class="add-link-button" (click)="addIdentityLink()">
-                    + Add Identity Link
-                </button>
+                }
+              </div>
             </div>
+          </div>
         </div>
 
-        <div *ngSwitchCase="'media'" class="profile-section">
-            <h2>Media Gallery</h2>
-            <p class="helper-text">
-                Add links to images or videos that showcase your project.
-            </p>
+        <div *ngSwitchCase="'media'" class="space-y-8 bg-surface-card rounded-lg md:rounded-xl p-4 md:p-8">
+          <div class="card bg-secondary-card border border-secondary-border rounded-2xl shadow-lg overflow-hidden">
+            <div class="p-8">
+              <h2 class="text-2xl font-bold mb-2 text-text flex items-center gap-2">
+                <i class="fas fa-image h-6 w-6 text-accent"></i>
+                Media Gallery
+              </h2>
+              <p class="text-text-secondary mb-8 text-base">
+                Add images, videos, and other media files to showcase your project.
+              </p>
 
-            <div class="media-container">
-                <div class="media-input">
-                    <input type="text" [(ngModel)]="newMediaUrl" placeholder="Enter media URL (image or video)"
-                        class="media-url-input" />
-                    <select [(ngModel)]="newMediaType" class="media-type-select">
-                        <option value="image">Image</option>
-                        <option value="video">Video</option>
-                    </select>
-                    <button class="primary-button" (click)="addMedia()">Add Media</button>
+              <div class="flex flex-col gap-4 mb-8">
+                <div class="flex gap-2 w-full">
+                  <button
+                    type="button"
+                    [class]="'flex items-center justify-center gap-2 px-4 py-3 h-12 rounded-lg border font-medium transition-all duration-200 flex-1 sm:flex-none sm:min-w-[120px] ' + (newMediaType === 'image' ? 'bg-accent text-white border-accent' : 'bg-background border-secondary-border hover:bg-accent/10 text-text-secondary hover:text-text')"
+                    (click)="newMediaType = 'image'"
+                  >
+                    <i class="fas fa-image text-sm"></i>
+                    <span class="text-sm font-medium">Image</span>
+                  </button>
+                  <button
+                    type="button"
+                    [class]="'flex items-center justify-center gap-2 px-4 py-3 h-12 rounded-lg border font-medium transition-all duration-200 flex-1 sm:flex-none sm:min-w-[120px] ' + (newMediaType === 'video' ? 'bg-accent text-white border-accent' : 'bg-background border-secondary-border hover:bg-accent/10 text-text-secondary hover:text-text')"
+                    (click)="newMediaType = 'video'"
+                  >
+                    <i class="fas fa-video text-sm"></i>
+                    <span class="text-sm font-medium">Video</span>
+                  </button>
+                </div>
+                <div class="flex flex-col sm:flex-row gap-3 w-full">
+                  <div class="relative flex-1">
+                    <input
+                      type="text"
+                      [(ngModel)]="newMediaUrl"
+                      placeholder="Paste media URL here"
+                      [class]="'w-full h-12 bg-background border focus:border-accent focus:ring-2 focus:ring-accent/20 text-text rounded-lg px-4 pr-12 transition-all duration-200 text-sm placeholder:text-text-secondary/60 ' + 
+                              (newMediaUrl && !isValidMediaUrl() ? 'border-red-500 focus:border-red-500' : 'border-secondary-border')"
+                    />
+                    <span class="absolute right-4 top-1/2 -translate-y-1/2 text-text-secondary/40 pointer-events-none">
+                      <i [ngClass]="{
+                        'fas fa-image': newMediaType === 'image',
+                        'fas fa-video': newMediaType === 'video'
+                      }" class="text-sm"></i>
+                    </span>
+                    @if (getMediaUrlError()) {
+                      <div class="flex items-center gap-1 text-red-500 text-xs mt-1 font-medium">
+                        <i class="fas fa-exclamation-circle"></i>
+                        {{ getMediaUrlError() }}
+                      </div>
+                    }
+                  </div>
+                  <button
+                    [disabled]="!newMediaUrl || !isValidMediaUrl()"
+                    class="h-12 px-6 rounded-lg bg-accent hover:bg-accent-dark disabled:bg-accent/50 disabled:cursor-not-allowed text-white font-medium transition-all duration-200 flex items-center justify-center gap-2 min-w-[100px]"
+                    (click)="addMedia()"
+                    type="button"
+                  >
+                    <i class="fas fa-plus text-sm"></i>
+                    <span class="text-sm font-medium">Add</span>
+                  </button>
+                </div>
+              </div>
+
+              <div
+                cdkDropList
+                class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"
+                (cdkDropListDropped)="dropMedia($event)"
+              >
+              @for (item of mediaItems; track $index; let i = $index) {
+              <div class="relative group rounded-xl overflow-hidden shadow-md bg-background border border-secondary-border transition-all duration-300 hover:shadow-lg" cdkDrag>
+                  <button
+                    class="absolute top-3 left-3 z-20 bg-black/60 backdrop-blur-sm border border-white/20 rounded-lg p-2 text-white/90 cursor-move shadow-lg opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-black/80"
+                    cdkDragHandle
+                    type="button"
+                    title="Drag to reorder"
+                  >
+                    <i class="fas fa-grip-vertical text-sm"></i>
+                  </button>
+
+                  <div class="absolute top-3 right-3 z-20 flex gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300">
+                    <button
+                      type="button"
+                      class="bg-black/60 backdrop-blur-sm border border-white/20 hover:bg-blue-600/80 text-white rounded-lg px-3 py-2 text-xs font-medium transition-all duration-200 hover:scale-105 shadow-lg"
+                      title="Edit media"
+                    >
+                      <i class="fas fa-edit mr-1"></i>
+                      Edit
+                    </button>
+                    <button
+                      type="button"
+                      class="bg-black/60 backdrop-blur-sm border border-white/20 hover:bg-red-600/80 text-white rounded-lg p-2 transition-all duration-200 hover:scale-105 shadow-lg"
+                      (click)="removeMedia(i)"
+                      title="Remove media"
+                    >
+                      <i class="fas fa-trash text-sm"></i>
+                    </button>
+                  </div>
+
+                  <div class="aspect-square flex items-center justify-center bg-background overflow-hidden rounded-xl">
+                    @if (item.type === 'image') {
+                        <img
+                          [src]="item.url || '/placeholder.svg'"
+                          alt="Media preview"
+                          class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                          loading="lazy"
+                        />
+                    }
+                    @if (item.type === 'video') {
+                        <video 
+                          [src]="item.url" 
+                          controls 
+                          class="w-full h-full object-cover"
+                          preload="metadata"
+                        >
+                          Your browser does not support the video tag.
+                        </video>
+                    }
+                  </div>
+                </div>
+                }
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div *ngSwitchCase="'relays'" class="space-y-6 bg-surface-card rounded-lg md:rounded-xl p-4 md:p-8">
+            <div class="card bg-secondary-card border border-secondary-border rounded-xl shadow-lg">
+            <div class="p-4 md:p-6">
+                <h2 class="text-xl font-semibold mb-3 md:mb-4 text-text flex items-center">
+                  <i class="fas fa-wifi h-5 w-5 text-accent"></i>
+                  <span class="ml-2">Relay Servers</span>
+                </h2>
+
+                <p class="text-text-secondary mb-5 leading-tight   text-sm md:text-base">
+                Manage the relay servers that your profile will connect to. These
+                relays will be used to publish and retrieve your project data.
+                </p>
+
+                <div class="space-y-5">
+                <div class="flex flex-col sm:flex-row gap-3 sm:items-start">
+                    <div class="flex-1">
+                    <input
+                        type="text"
+                        [(ngModel)]="newRelayUrl"
+                        placeholder="wss://relay.example.com"
+                        (keyup.enter)="addRelay()"
+                        [class]="'w-full bg-background border focus:outline-none h-11 text-text px-3 py-2 rounded-md text-sm md:text-base ' + 
+                                (newRelayUrl && !isValidRelayUrl() ? 'border-red-500 focus:border-red-500' : 'border-secondary-border focus:border-secondary-border')"
+                    />
+                    @if (getRelayUrlError()) {
+                      <div class="flex items-center gap-1 text-red-500 text-xs mt-1 font-medium">
+                        <i class="fas fa-exclamation-circle"></i>
+                        {{ getRelayUrlError() }}
+                      </div>
+                    }
+                    </div>
+                    <button
+                    (click)="addRelay()"
+                    [disabled]="!newRelayUrl || !isValidRelayUrl()"
+                    class="bg-accent hover:bg-accent-dark disabled:bg-accent/50 disabled:cursor-not-allowed text-white px-4 py-2 rounded-md flex items-center justify-center whitespace-nowrap transition-all duration-200 h-11 flex-shrink-0"
+                    >
+                    <i class="fas fa-plus h-4 w-4 mr-2"></i>
+                    Add Relay
+                    </button>
                 </div>
 
-                <div cdkDropList class="media-grid" (cdkDropListDropped)="dropMedia($event)">
-                    <div *ngFor="let item of mediaItems; let i = index" class="media-item" cdkDrag>
-                        <div class="media-preview">
-                            <img *ngIf="item.type === 'image'" [src]="item.url" alt="Media preview">
-                            <video *ngIf="item.type === 'video'" [src]="item.url" controls></video>
+                <div class="space-y-2">
+                    @for (relay of relays; track $index) {
+                    <div class="flex items-center justify-between p-3 bg-surface-card rounded-md hover:bg-background/80 border border-transparent hover:border-secondary-border">
+                        <div class="flex items-center min-w-0">
+                        <div class="h-8 w-8 flex-shrink-0 rounded-full bg-accent/20 flex items-center justify-center mr-3">
+                            <i class="fas fa-globe h-4 w-4 text-accent"></i>
                         </div>
-                        <div class="media-controls">
-                            <button class="move-button" cdkDragHandle>⋮⋮</button>
-                            <button class="delete-button" (click)="removeMedia(i)">×</button>
+                        <div class="text-sm text-text font-mono truncate">
+                            {{relay}}
                         </div>
+                        </div>
+                        <button
+                        (click)="removeRelay($index)"
+                        [disabled]="relays.length === 1"
+                        title="Remove relay"
+                        aria-label="Remove relay"
+                        class="h-8 w-8 flex-shrink-0 p-0 ml-2 rounded-full hover:bg-accent/20 text-text-secondary flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                        <i class="fas fa-times h-4 w-4" aria-hidden="true"></i>
+                        </button>
                     </div>
+                    }
+                </div>
                 </div>
             </div>
-        </div>
-
-        <div *ngSwitchCase="'relays'" class="profile-section">
-            <h2>Relay Servers</h2>
-            <p class="helper-text">
-                Manage the relay servers that your profile will connect to. These relays will be used to publish and
-                retrieve your project data.
-            </p>
-
-            <div class="relays-container">
-                <div class="relay-input">
-                    <input type="text" [(ngModel)]="newRelayUrl" placeholder="wss://relay.example.com"
-                        class="relay-url-input" (keyup.enter)="addRelay()" />
-                    <button class="primary-button" (click)="addRelay()">Add Relay</button>
-                </div>
-
-                <div class="relay-list">
-                    <div *ngFor="let relay of relays; let i = index" class="relay-item">
-                        <span class="relay-url">{{relay}}</span>
-                        <button class="delete-button" (click)="removeRelay(i)"
-                            [disabled]="relays.length === 1">×</button>
-                    </div>
-                </div>
-
-                <div class="relay-actions">
-                    <button class="primary-button" (click)="applyAndConnect()">Apply and Connect</button>
-                </div>
             </div>
-        </div>
-
-        <div *ngIf="isMobile" class="mobile-navigation">
-            <button class="nav-button previous" (click)="previousTab()" *ngIf="activeTab !== tabs[0].id">
-                ← Previous
-            </button>
-            <button class="nav-button next" (click)="nextTab()" *ngIf="activeTab !== tabs[tabs.length-1].id">
-                Next →
-            </button>
         </div>
     </div>
 
-    <div class="actions">
-        <button class="secondary-button" (click)="resetChanges()">
+    <div class="flex flex-col sm:flex-row gap-4 justify-center sm:justify-end p-4 md:p-6">
+        <button 
+            class="px-6 py-3 bg-background border border-border hover:bg-surface-card text-text-secondary hover:text-text rounded-lg font-medium flex items-center justify-center" 
+            (click)="resetChanges()"
+        >
             Reset Changes
         </button>
-        <button class="primary-button" (click)="saveProfile()">
+        <button 
+            class="px-6 py-3 bg-accent hover:bg-accent-dark text-white rounded-lg font-medium flex items-center justify-center shadow-md hover:shadow-lg" 
+            (click)="saveProfile()"
+        >
             Save Profile
         </button>
     </div>

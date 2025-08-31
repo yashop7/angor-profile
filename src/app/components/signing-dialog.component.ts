@@ -10,40 +10,52 @@ import { hexToBytes, bytesToHex } from '@noble/hashes/utils';
   imports: [CommonModule, FormsModule],
   template: `
     @if (visible) {
-      <div class="dialog-overlay">
-        <div class="dialog">
-          <h2>{{ title || 'Sign Data' }}</h2>
+      <div class="fixed inset-0 bg-black/70 flex items-center justify-center z-[1000] backdrop-blur-sm">
+        <div class="bg-surface-card rounded-xl p-8 w-[90%] max-w-2xl shadow-2xl border border-secondary-border">
+          <h2 class="text-2xl font-bold text-text mb-6">{{ title || 'Sign Data' }}</h2>
           
-          <div class="dialog-content">
-            <p>{{ getSigningMessage() }}</p>
+          <div class="mb-8">
+            <p class="text-text-secondary mb-4">{{ getSigningMessage() }}</p>
             
             @if (validationError()) {
-              <div class="error-message">
+              <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg border-l-4 border-l-red-500 mb-4">
                 {{ validationError() }}
               </div>
             }
             
             @if (showDataPreview) {
-              <div class="data-preview">
-                <pre>{{ getDataPreviewText() }}</pre>
+              <div class="bg-background border border-secondary-border rounded-lg p-4 max-h-48 overflow-y-auto mb-6">
+                <pre class="text-text text-sm whitespace-pre-wrap break-words">{{ getDataPreviewText() }}</pre>
               </div>
             }
 
-            <div class="signing-options">
-              <button class="sign-button extension" (click)="signWithExtension()">
+            <div class="space-y-6">
+              <button 
+                class="w-full bg-accent hover:bg-accent-dark text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200"
+                (click)="signWithExtension()"
+              >
                 Sign with Extension
               </button>
-              <div class="or-divider">OR</div>
-              <div class="private-key-section">
+              
+              <div class="relative text-center">
+                <div class="absolute inset-0 flex items-center">
+                  <div class="w-full border-t border-secondary-border"></div>
+                </div>
+                <div class="relative bg-surface-card px-4">
+                  <span class="text-text-secondary text-sm">OR</span>
+                </div>
+              </div>
+              
+              <div class="space-y-4">
                 <input
                   type="password"
                   [ngModel]="privateKey()"
                   (ngModelChange)="privateKey.set($event)"
                   placeholder="Enter your private key (nsec or hex)"
-                  class="private-key-input"
+                  class="w-full px-4 py-3 border border-secondary-border rounded-lg bg-background text-text focus:outline-none focus:border-accent transition-colors duration-200"
                 />
                 <button
-                  class="sign-button private-key"
+                  class="w-full bg-background hover:bg-secondary-card text-text font-semibold py-3 px-6 rounded-lg border border-secondary-border transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                   [disabled]="!privateKey()"
                   (click)="signWithPrivateKey()"
                 >
@@ -53,172 +65,18 @@ import { hexToBytes, bytesToHex } from '@noble/hashes/utils';
             </div>
           </div>
 
-          <div class="dialog-actions">
-            <button class="cancel-button" (click)="cancel()">Cancel</button>
+          <div class="flex justify-end">
+            <button 
+              class="px-6 py-3 border border-border rounded-lg text-text-secondary transition-colors duration-200"
+              (click)="cancel()"
+            >
+              Cancel
+            </button>
           </div>
         </div>
       </div>
     }
-  `,
-  styles: [
-    `
-      .dialog-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: rgba(0, 0, 0, 0.7);
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        z-index: 1000;
-      }
-
-      .dialog {
-        background: var(--surface-card);
-        border-radius: 8px;
-        padding: 2rem;
-        width: 90%;
-        max-width: 600px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-      }
-
-      h2 {
-        margin-top: 0;
-        color: var(--text);
-        margin-bottom: 1.5rem;
-      }
-
-      .dialog-content {
-        margin-bottom: 2rem;
-      }
-
-      .error-message {
-        background: #fee;
-        color: #c33;
-        padding: 1rem;
-        border-radius: 4px;
-        border-left: 4px solid #c33;
-        margin: 1rem 0;
-        font-size: 0.9rem;
-      }
-
-      .data-preview {
-        background: var(--surface-ground);
-        padding: 1rem;
-        border-radius: 4px;
-        margin: 1rem 0;
-        max-height: 200px;
-        overflow-y: auto;
-      }
-
-      pre {
-        margin: 0;
-        white-space: pre-wrap;
-        word-break: break-all;
-        color: var(--text);
-      }
-
-      .signing-options {
-        display: flex;
-        flex-direction: column;
-        gap: 1.5rem;
-        margin-top: 2rem;
-      }
-
-      .sign-button {
-        padding: 0.75rem 1.5rem;
-        border-radius: 4px;
-        cursor: pointer;
-        transition: all 0.2s;
-        font-weight: 500;
-      }
-
-      .sign-button.extension {
-        background: var(--accent);
-        color: white;
-        border: none;
-      }
-
-      .sign-button.extension:hover {
-        background: var(--accent-dark);
-      }
-
-      .or-divider {
-        text-align: center;
-        color: var(--text-secondary);
-        font-size: 0.9rem;
-        position: relative;
-      }
-
-      .or-divider::before,
-      .or-divider::after {
-        content: '';
-        position: absolute;
-        top: 50%;
-        width: 45%;
-        height: 1px;
-        background: var(--border);
-      }
-
-      .or-divider::before {
-        left: 0;
-      }
-
-      .or-divider::after {
-        right: 0;
-      }
-
-      .private-key-section {
-        display: flex;
-        flex-direction: column;
-        gap: 1rem;
-      }
-
-      .private-key-input {
-        padding: 0.75rem;
-        border: 1px solid var(--border);
-        border-radius: 4px;
-        background: var(--surface-ground);
-        color: var(--text);
-      }
-
-      .sign-button.private-key {
-        background: var(--surface-ground);
-        border: 1px solid var(--border);
-        color: var(--text);
-      }
-
-      .sign-button.private-key:hover:not(:disabled) {
-        background: var(--surface-hover);
-      }
-
-      .sign-button.private-key:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-      }
-
-      .dialog-actions {
-        display: flex;
-        justify-content: flex-end;
-      }
-
-      .cancel-button {
-        padding: 0.75rem 1.5rem;
-        background: none;
-        border: 1px solid var(--border);
-        border-radius: 4px;
-        color: var(--text);
-        cursor: pointer;
-        transition: all 0.2s;
-      }
-
-      .cancel-button:hover {
-        background: var(--surface-hover);
-      }
-    `,
-  ],
+  `
 })
 export class SigningDialogComponent {
   @Input() visible = false;
