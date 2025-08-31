@@ -153,6 +153,114 @@ export class ProfileComponent implements OnInit {
     window.addEventListener('resize', () => this.checkScreenSize());
   }
 
+  isValidRelayUrl(): boolean {
+    if (!this.newRelayUrl || this.newRelayUrl.trim() === '') return true;
+    
+    const url = this.newRelayUrl.trim();
+
+    if (!url.startsWith('wss://')) {
+      return false;
+    }
+    
+    try {
+      new URL(url);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  getRelayUrlError(): string {
+    if (!this.newRelayUrl || this.newRelayUrl.trim() === '') return '';
+    
+    const url = this.newRelayUrl.trim();
+    
+    if (!url.startsWith('wss://')) {
+      return 'Relay URL must start with wss://';
+    }
+    
+    try {
+      new URL(url);
+      return '';
+    } catch {
+      return 'Please enter a valid URL format';
+    }
+  }
+
+  isValidMediaUrl(): boolean {
+    if (!this.newMediaUrl || this.newMediaUrl.trim() === '') return true;
+    
+    const url = this.newMediaUrl.trim();
+    
+    if (!url.startsWith('https://') && !url.startsWith('http://')) {
+      return false;
+    }
+    
+    try {
+      new URL(url);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  getMediaUrlError(): string {
+    if (!this.newMediaUrl || this.newMediaUrl.trim() === '') return '';
+    
+    const url = this.newMediaUrl.trim();
+    
+    if (!url.startsWith('https://') && !url.startsWith('http://')) {
+      return 'Media URL must start with https:// or http://';
+    }
+    
+    try {
+      new URL(url);
+      return '';
+    } catch {
+      return 'Please enter a valid URL format';
+    }
+  }
+
+  isValidProofUrl(proofUrl: string): boolean {
+    if (!proofUrl || proofUrl.trim() === '') return true;
+    
+    const url = proofUrl.trim();
+    
+    if (!url.startsWith('https://')) {
+      return false;
+    }
+    
+    try {
+      new URL(url);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  getProofUrlError(proofUrl: string): string {
+    if (!proofUrl || proofUrl.trim() === '') return '';
+    
+    const url = proofUrl.trim();
+    
+    if (!url.startsWith('https://')) {
+      return 'Proof URL must start with https://';
+    }
+    
+    try {
+      new URL(url);
+      return '';
+    } catch {
+      return 'Please enter a valid URL format';
+    }
+  }
+
+  areAllProofUrlsValid(): boolean {
+    return this.profile.identityTags.every(link => 
+      !link.proof || this.isValidProofUrl(link.proof)
+    );
+  }
+
   reloadPage(): void {
     window.location.reload();
   }
@@ -481,12 +589,14 @@ export class ProfileComponent implements OnInit {
   addMedia() {
     if (!this.newMediaUrl) return;
     
-    this.mediaItems.push({
-      url: this.newMediaUrl,
-      type: this.newMediaType
-    });
+    if (this.isValidMediaUrl()) {
+      this.mediaItems.push({
+        url: this.newMediaUrl,
+        type: this.newMediaType
+      });
 
-    this.newMediaUrl = '';
+      this.newMediaUrl = '';
+    }
   }
 
   removeMedia(index: number) {
@@ -500,20 +610,16 @@ export class ProfileComponent implements OnInit {
   addRelay() {
     if (!this.newRelayUrl) return;
     
-    // Basic validation for wss:// or ws:// protocol
-    if (!this.newRelayUrl.startsWith('wss://') && !this.newRelayUrl.startsWith('ws://')) {
-      this.newRelayUrl = 'wss://' + this.newRelayUrl;
-    }
-    
-    if (!this.relays.includes(this.newRelayUrl)) {
+    if (this.isValidRelayUrl() && !this.relays.includes(this.newRelayUrl)) {
       this.relays.push(this.newRelayUrl);
+      this.newRelayUrl = '';
     }
-    
-    this.newRelayUrl = '';
   }
 
   removeRelay(index: number) {
-    this.relays.splice(index, 1);
+    if (this.relays.length > 1) {
+      this.relays.splice(index, 1);
+    }
   }
 
   async applyAndConnect() {

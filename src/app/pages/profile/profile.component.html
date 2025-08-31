@@ -481,9 +481,16 @@
                           [(ngModel)]="link.proof"
                           [id]="'proof-' + i"
                           placeholder="Proof URL or identifier"
-                          class="w-full h-11 sm:h-12 bg-background border border-secondary-border focus:border-accent focus:ring-2 focus:ring-accent/20 text-text rounded-xl px-3 sm:px-4 transition-all duration-200 placeholder:text-text-secondary/50 text-sm sm:text-base"
+                          [class]="'w-full h-11 sm:h-12 bg-background border focus:border-accent focus:ring-2 focus:ring-accent/20 text-text rounded-xl px-3 sm:px-4 transition-all duration-200 placeholder:text-text-secondary/50 text-sm sm:text-base ' + 
+                                  (link.proof && !isValidProofUrl(link.proof) ? 'border-red-500 focus:border-red-500' : 'border-secondary-border')"
                           autocomplete="off"
                         />
+                        @if (getProofUrlError(link.proof)) {
+                          <div class="flex items-center gap-1 text-red-500 text-xs mt-1 font-medium">
+                            <i class="fas fa-exclamation-circle"></i>
+                            {{ getProofUrlError(link.proof) }}
+                          </div>
+                        }
                       </div>
                     </div>
                   </div>
@@ -491,7 +498,8 @@
                   
                   <div class="flex justify-center pt-2 sm:pt-4">
                     <button
-                      class="flex items-center justify-center gap-2 bg-background border border-secondary-border hover:bg-accent hover:text-white text-text-secondary font-semibold rounded-xl px-4 sm:px-6 py-3 shadow transition-all duration-200 hover:shadow-lg w-full sm:w-auto text-sm sm:text-base"
+                      [disabled]="!areAllProofUrlsValid()"
+                      class="flex items-center justify-center gap-2 bg-background border border-secondary-border hover:bg-accent hover:text-white disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed text-text-secondary font-semibold rounded-xl px-4 sm:px-6 py-3 shadow transition-all duration-200 hover:shadow-lg w-full sm:w-auto text-sm sm:text-base"
                       (click)="addIdentityLink()"
                       type="button"
                     >
@@ -559,7 +567,8 @@
                       type="text"
                       [(ngModel)]="newMediaUrl"
                       placeholder="Paste media URL here"
-                      class="w-full h-12 bg-background border border-secondary-border focus:border-accent focus:ring-2 focus:ring-accent/20 text-text rounded-lg px-4 pr-12 transition-all duration-200 text-sm placeholder:text-text-secondary/60"
+                      [class]="'w-full h-12 bg-background border focus:border-accent focus:ring-2 focus:ring-accent/20 text-text rounded-lg px-4 pr-12 transition-all duration-200 text-sm placeholder:text-text-secondary/60 ' + 
+                              (newMediaUrl && !isValidMediaUrl() ? 'border-red-500 focus:border-red-500' : 'border-secondary-border')"
                     />
                     <span class="absolute right-4 top-1/2 -translate-y-1/2 text-text-secondary/40 pointer-events-none">
                       <i [ngClass]="{
@@ -567,9 +576,16 @@
                         'fas fa-video': newMediaType === 'video'
                       }" class="text-sm"></i>
                     </span>
+                    @if (getMediaUrlError()) {
+                      <div class="flex items-center gap-1 text-red-500 text-xs mt-1 font-medium">
+                        <i class="fas fa-exclamation-circle"></i>
+                        {{ getMediaUrlError() }}
+                      </div>
+                    }
                   </div>
                   <button
-                    class="h-12 px-6 rounded-lg bg-accent hover:bg-accent-dark disabled:bg-accent/50 text-white font-medium transition-all duration-200 flex items-center justify-center gap-2 min-w-[100px]"
+                    [disabled]="!newMediaUrl || !isValidMediaUrl()"
+                    class="h-12 px-6 rounded-lg bg-accent hover:bg-accent-dark disabled:bg-accent/50 disabled:cursor-not-allowed text-white font-medium transition-all duration-200 flex items-center justify-center gap-2 min-w-[100px]"
                     (click)="addMedia()"
                     type="button"
                   >
@@ -655,19 +671,27 @@
                 </p>
 
                 <div class="space-y-5">
-                <div class="flex flex-col sm:flex-row gap-3">
+                <div class="flex flex-col sm:flex-row gap-3 sm:items-start">
                     <div class="flex-1">
                     <input
                         type="text"
                         [(ngModel)]="newRelayUrl"
                         placeholder="wss://relay.example.com"
                         (keyup.enter)="addRelay()"
-                        class="w-full bg-background border-secondary-border focus:border-secondary-border h-11 text-text px-3 py-2 rounded-md border focus:outline-none text-sm md:text-base"
+                        [class]="'w-full bg-background border focus:outline-none h-11 text-text px-3 py-2 rounded-md text-sm md:text-base ' + 
+                                (newRelayUrl && !isValidRelayUrl() ? 'border-red-500 focus:border-red-500' : 'border-secondary-border focus:border-secondary-border')"
                     />
+                    @if (getRelayUrlError()) {
+                      <div class="flex items-center gap-1 text-red-500 text-xs mt-1 font-medium">
+                        <i class="fas fa-exclamation-circle"></i>
+                        {{ getRelayUrlError() }}
+                      </div>
+                    }
                     </div>
                     <button
                     (click)="addRelay()"
-                    class="bg-accent hover:bg-accent-dark text-white px-4 py-2 rounded-md flex items-center justify-center whitespace-nowrap"
+                    [disabled]="!newRelayUrl || !isValidRelayUrl()"
+                    class="bg-accent hover:bg-accent-dark disabled:bg-accent/50 disabled:cursor-not-allowed text-white px-4 py-2 rounded-md flex items-center justify-center whitespace-nowrap transition-all duration-200 h-11 flex-shrink-0"
                     >
                     <i class="fas fa-plus h-4 w-4 mr-2"></i>
                     Add Relay
