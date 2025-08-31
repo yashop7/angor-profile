@@ -1,8 +1,4 @@
 <section class="bg-background py-4 pb-10">
-    <app-breadcrumb [items]="[
-          { label: 'Home', url: '/' },
-          { label: 'Profile', url: '' }
-        ]"></app-breadcrumb>
     <div class="max-w-6xl mx-auto px-4 md:px-6 lg:px-8">
         <div class="text-center max-w-3xl mx-auto">
             <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold text-text my-5 md:mb-6 tracking-tight leading-tight">Profile Settings</h1>
@@ -39,8 +35,11 @@
 <div class="px-2 md:px-4 lg:px-8">
     <div class="relative mb-8">
         <button 
+            type="button"
+            aria-label="Previous Tab"
             class="md:hidden absolute left-2 top-1/2 -translate-y-1/2 z-30 w-8 h-8 flex items-center justify-center bg-surface-card/95 backdrop-blur-sm border border-secondary-border rounded-full text-text-secondary hover:text-text hover:bg-secondary-card shadow-lg"
             (click)="previousTab()"
+            title="Previous Tab"
         >
             <i class="fas fa-chevron-left text-xs"></i>
         </button>
@@ -62,6 +61,9 @@
             }
         </div>
         <button 
+            type="button"
+            aria-label="Next Tab"
+            title="Next Tab"
             class="md:hidden absolute right-2 top-1/2 -translate-y-1/2 z-30 w-8 h-8 flex items-center justify-center bg-surface-card/95 backdrop-blur-sm border border-secondary-border rounded-full text-text-secondary hover:text-text hover:bg-secondary-card shadow-lg"
             (click)="nextTab()"
         >
@@ -195,36 +197,52 @@
                         Project Description
                     </h2>
                     <p class="text-text-secondary mb-8">
-                        Write a detailed description of your project. This will be displayed as your main project content.
+                        Write a detailed description of your project. This will be displayed as your main project content. Full markdown support included.
                     </p>
 
                     <div class="space-y-6">
                         <div class="bg-surface-card border border-secondary-border rounded-lg p-3">
                             <div class="flex items-center justify-between gap-2">
                                 <div class="flex items-center gap-1 flex-wrap">
-                                    <button class="size-8 md:size-9 flex items-center justify-center rounded-md hover:bg-accent/20 text-text-secondary hover:text-text transition-colors duration-200" (click)="formatText('**', '**')" title="Bold">
+                                    <button type="button" class="size-8 md:size-9 flex items-center justify-center rounded-md hover:bg-accent/20 text-text-secondary hover:text-text transition-colors duration-200" (click)="formatProjectText('**', '**')" title="Bold">
                                         <i class="fas fa-bold text-sm"></i>
                                     </button>
-                                    <button class="size-8 md:size-9 flex items-center justify-center rounded-md hover:bg-accent/20 text-text-secondary hover:text-text transition-colors duration-200" (click)="formatText('*', '*')" title="Italic">
+                                    <button type="button" class="size-8 md:size-9 flex items-center justify-center rounded-md hover:bg-accent/20 text-text-secondary hover:text-text transition-colors duration-200" (click)="formatProjectText('*', '*')" title="Italic">
                                         <i class="fas fa-italic text-sm"></i>
                                     </button>
-                                    <button class="size-8 md:size-9 flex items-center justify-center rounded-md hover:bg-accent/20 text-text-secondary hover:text-text transition-colors duration-200" (click)="formatText('###', '')" title="Heading">
+                                    <button type="button" class="size-8 md:size-9 flex items-center justify-center rounded-md hover:bg-accent/20 text-text-secondary hover:text-text transition-colors duration-200" (click)="formatProjectText('### ', '')" title="Heading">
                                         <i class="fas fa-heading text-sm"></i>
                                     </button>
-                                    <button class="size-8 md:size-9 flex items-center justify-center rounded-md hover:bg-accent/20 text-text-secondary hover:text-text transition-colors duration-200" (click)="formatText('- ', '')" title="List">
+                                    <button type="button" class="size-8 md:size-9 flex items-center justify-center rounded-md hover:bg-accent/20 text-text-secondary hover:text-text transition-colors duration-200" (click)="formatProjectText('- ', '')" title="List">
                                         <i class="fas fa-list-ul text-sm"></i>
                                     </button>
-                                    <button class="size-8 md:size-9 flex items-center justify-center rounded-md hover:bg-accent/20 text-text-secondary hover:text-text transition-colors duration-200" (click)="formatText('[', '](url)')" title="Link">
+                                    <button type="button" class="size-8 md:size-9 flex items-center justify-center rounded-md hover:bg-accent/20 text-text-secondary hover:text-text transition-colors duration-200" (click)="formatProjectText('1. ', '')" title="Numbered List">
+                                        <i class="fas fa-list-ol text-sm"></i>
+                                    </button>
+                                    <button type="button" class="size-8 md:size-9 flex items-center justify-center rounded-md hover:bg-accent/20 text-text-secondary hover:text-text transition-colors duration-200" (click)="formatProjectText('[', '](url)')" title="Link">
                                         <i class="fas fa-link text-sm"></i>
+                                    </button>
+                                    <button type="button" class="size-8 md:size-9 flex items-center justify-center rounded-md hover:bg-accent/20 text-text-secondary hover:text-text transition-colors duration-200" (click)="formatProjectText('![', '](image-url)')" title="Image">
+                                        <i class="fas fa-image text-sm"></i>
+                                    </button>
+                                    <button type="button" class="size-8 md:size-9 flex items-center justify-center rounded-md hover:bg-accent/20 text-text-secondary hover:text-text transition-colors duration-200" (click)="formatProjectText('`', '`')" title="Code">
+                                        <i class="fas fa-code text-sm"></i>
+                                    </button>
+                                    <button type="button" class="size-8 md:size-9 flex items-center justify-center rounded-md hover:bg-accent/20 text-text-secondary hover:text-text transition-colors duration-200" (click)="formatProjectText('```\n', '\n```')" title="Code Block">
+                                        <i class="fas fa-file-code text-sm"></i>
+                                    </button>
+                                    <button type="button" class="size-8 md:size-9 flex items-center justify-center rounded-md hover:bg-accent/20 text-text-secondary hover:text-text transition-colors duration-200" (click)="formatProjectText('> ', '')" title="Quote">
+                                        <i class="fas fa-quote-left text-sm"></i>
                                     </button>
                                 </div>
                                 <button 
+                                    type="button"
                                     [class]="'h-8 px-3 md:h-9 md:px-4 flex items-center justify-center gap-2 rounded-md font-medium border border-secondary-border transition-colors duration-200 text-sm ' + (showPreview ? 'bg-accent text-white' : 'bg-background hover:bg-accent/20 text-text-secondary hover:text-text')"
                                     (click)="togglePreview()"
                                     title="Toggle Preview"
                                 >
                                     <i class="fas fa-eye text-sm"></i>
-                                    <span class="hidden sm:inline">Preview</span>
+                                    <span class="hidden sm:inline">{{ showPreview ? 'Edit' : 'Preview' }}</span>
                                 </button>
                             </div>
                         </div>
@@ -232,18 +250,39 @@
                         <div class="relative">
                             <div *ngIf="!showPreview">
                                 <textarea 
+                                    #projectTextarea
                                     [(ngModel)]="projectContent.content"
                                     (input)="onContentChange()"
-                                    class="w-full min-h-[250px] md:min-h-[350px] p-3 md:p-4 rounded-lg bg-surface-card border border-secondary-border focus:border-accent text-text text-sm md:text-base resize-y transition-all duration-200 placeholder:text-text-secondary/50"
-                                    placeholder="Write your project description here... Use Markdown for formatting."
+                                    class="w-full min-h-[350px] md:min-h-[450px] p-3 md:p-4 rounded-lg bg-surface-card border border-secondary-border focus:border-accent text-text text-sm md:text-base resize-y transition-all duration-200 placeholder:text-text-secondary/50 font-mono"
+                                    placeholder="Write your project description here... Use Markdown for formatting.
+
+# Project Title
+## Introduction
+Your project description with **bold** and *italic* text.
+
+### Features
+- Feature 1
+- Feature 2
+
+### Code Example
+```javascript
+console.log('Hello World');
+```
+
+> Quote or important note
+
+[Link to documentation](https://example.com)
+![Project Image](https://example.com/image.jpg)"
                                 ></textarea>
                                 <div *ngIf="projectContent.lastUpdated" class="text-text-secondary text-xs md:text-sm mt-3">
                                     Last updated: {{ formatDate(projectContent.lastUpdated) }}
                                 </div>
                             </div>
 
-                            <div *ngIf="showPreview" class="w-full min-h-[250px] md:min-h-[350px] p-3 md:p-4 rounded-lg bg-surface-card border border-secondary-border text-text text-sm md:text-base">
-                                <markdown [data]="projectContent.content"></markdown>
+                            <div *ngIf="showPreview" class="w-full min-h-[350px] md:min-h-[450px] p-3 md:p-4 rounded-lg bg-surface-card border border-secondary-border text-text text-sm md:text-base overflow-auto">
+                                <div class="prose prose-sm md:prose-base max-w-none dark:prose-invert prose-headings:text-text prose-p:text-text prose-a:text-accent prose-strong:text-text prose-em:text-text prose-code:text-accent prose-pre:bg-background prose-pre:border prose-pre:border-secondary-border prose-blockquote:border-l-accent prose-blockquote:text-text-secondary prose-li:text-text">
+                                    <markdown [data]="projectContent.content || '*No content yet. Click Edit to start writing.*'"></markdown>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -258,41 +297,104 @@
                     Frequently Asked Questions
                 </h2>
                 <p class="text-text-secondary mb-6">
-                    Add questions and answers that will help users understand your project better.
+                    Add questions and answers that will help users understand your project better. Answers support full markdown formatting.
                 </p>
 
                 <div class="space-y-8">
                     @for (faq of faqItems; track faq.id) {
                     <div class="relative bg-secondary-card border border-secondary-border rounded-xl shadow-md p-6 md:p-10 group transition-all duration-200 hover:border-secondary-border hover:shadow-lg">
                         <button 
+                            type="button"
                             (click)="deleteFaqItem(faq.id)" 
                             title="Delete question"
                             class="absolute top-4 right-4 h-8 w-8 flex items-center justify-center rounded-full bg-background border border-border text-text-secondary transition-all duration-300 hover:bg-accent hover:text-white focus:outline-none focus:ring-2 focus:ring-accent"
                         >
                             <i class="fas fa-times text-sm"></i>
                         </button>
-                        <div class="mb-4">
-                            <label class="block text-text-secondary font-semibold mb-1 tracking-wide">Question</label>
+                        <div class="mb-6">
+                            <label class="block text-text-secondary font-semibold mb-2 tracking-wide">Question</label>
                             <input 
                                 type="text" 
                                 [(ngModel)]="faq.question" 
                                 placeholder="Enter your question" 
-                                class="w-full bg-background border border-secondary-border focus:border-secondary-border text-text rounded-lg px-4 py-2 transition-all duration-200 font-mono text-base placeholder:text-text-secondary/40 shadow-inner"
+                                class="w-full bg-background border border-secondary-border focus:border-secondary-border text-text rounded-lg px-4 py-3 transition-all duration-200 text-base placeholder:text-text-secondary/40 shadow-inner"
                             />
                         </div>
-                        <div>
-                            <label class="block text-text-secondary font-semibold mb-1 tracking-wide">Answer</label>
-                            <textarea 
-                                [(ngModel)]="faq.answer" 
-                                rows="4" 
-                                placeholder="Enter your answer"
-                                class="w-full bg-background border border-secondary-border focus:border-secondary-border text-text rounded-lg px-4 py-2 transition-all duration-200 font-mono text-base placeholder:text-text-secondary/40 resize-y shadow-inner"
-                            ></textarea>
+                        <div class="space-y-4">
+                            <div class="flex items-center justify-between">
+                                <label class="block text-text-secondary font-semibold tracking-wide">Answer</label>
+                                <div class="flex items-center gap-2">
+                                    <button 
+                                        type="button"
+                                        [class]="'h-8 px-3 flex items-center justify-center gap-2 rounded-md font-medium border border-secondary-border transition-colors duration-200 text-xs ' + (faq.showPreview ? 'bg-accent text-white' : 'bg-background hover:bg-accent/20 text-text-secondary hover:text-text')"
+                                        (click)="toggleFaqPreview(faq.id)"
+                                        title="Toggle Preview"
+                                    >
+                                        <i class="fas fa-eye text-xs"></i>
+                                        <span>{{ faq.showPreview ? 'Edit' : 'Preview' }}</span>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-surface-card border border-secondary-border rounded-lg p-3" *ngIf="!faq.showPreview">
+                                <div class="flex items-center gap-1 flex-wrap mb-3">
+                                    <button type="button" class="size-7 flex items-center justify-center rounded-md hover:bg-accent/20 text-text-secondary hover:text-text transition-colors duration-200" (click)="formatFaqText(faq.id, '**', '**')" title="Bold">
+                                        <i class="fas fa-bold text-xs"></i>
+                                    </button>
+                                    <button type="button" class="size-7 flex items-center justify-center rounded-md hover:bg-accent/20 text-text-secondary hover:text-text transition-colors duration-200" (click)="formatFaqText(faq.id, '*', '*')" title="Italic">
+                                        <i class="fas fa-italic text-xs"></i>
+                                    </button>
+                                    <button type="button" class="size-7 flex items-center justify-center rounded-md hover:bg-accent/20 text-text-secondary hover:text-text transition-colors duration-200" (click)="formatFaqText(faq.id, '### ', '')" title="Heading">
+                                        <i class="fas fa-heading text-xs"></i>
+                                    </button>
+                                    <button type="button" class="size-7 flex items-center justify-center rounded-md hover:bg-accent/20 text-text-secondary hover:text-text transition-colors duration-200" (click)="formatFaqText(faq.id, '- ', '')" title="List">
+                                        <i class="fas fa-list-ul text-xs"></i>
+                                    </button>
+                                    <button type="button" class="size-7 flex items-center justify-center rounded-md hover:bg-accent/20 text-text-secondary hover:text-text transition-colors duration-200" (click)="formatFaqText(faq.id, '[', '](url)')" title="Link">
+                                        <i class="fas fa-link text-xs"></i>
+                                    </button>
+                                    <button type="button" class="size-7 flex items-center justify-center rounded-md hover:bg-accent/20 text-text-secondary hover:text-text transition-colors duration-200" (click)="formatFaqText(faq.id, '`', '`')" title="Code">
+                                        <i class="fas fa-code text-xs"></i>
+                                    </button>
+                                    <button type="button" class="size-7 flex items-center justify-center rounded-md hover:bg-accent/20 text-text-secondary hover:text-text transition-colors duration-200" (click)="formatFaqText(faq.id, '> ', '')" title="Quote">
+                                        <i class="fas fa-quote-left text-xs"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div *ngIf="!faq.showPreview">
+                                <textarea 
+                                    [(ngModel)]="faq.answer" 
+                                    rows="6" 
+                                    [attr.data-faq-id]="faq.id"
+                                    placeholder="Enter your answer with markdown support...
+
+**Bold text** and *italic text*
+- List items
+- Another item
+
+```code
+Code blocks supported
+```
+
+> Blockquotes for important notes
+
+[Links](https://example.com) work too!"
+                                    class="w-full bg-background border border-secondary-border focus:border-secondary-border text-text rounded-lg px-4 py-3 transition-all duration-200 font-mono text-sm placeholder:text-text-secondary/40 resize-y shadow-inner"
+                                ></textarea>
+                            </div>
+                            
+                            <div *ngIf="faq.showPreview" class="w-full min-h-[150px] p-4 rounded-lg bg-background border border-secondary-border">
+                                <div class="prose prose-sm max-w-none dark:prose-invert prose-headings:text-text prose-p:text-text prose-a:text-accent prose-strong:text-text prose-em:text-text prose-code:text-accent prose-pre:bg-surface-card prose-pre:border prose-pre:border-secondary-border prose-blockquote:border-l-accent prose-blockquote:text-text-secondary prose-li:text-text">
+                                    <markdown [data]="faq.answer || '*No answer yet. Click Edit to start writing.*'"></markdown>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     }
                     <div class="flex justify-center">
                         <button 
+                            type="button"
                             class="flex items-center gap-2 bg-background border border-secondary-border hover:bg-accent hover:text-white text-text-secondary font-semibold rounded-xl px-6 py-3 shadow transition-all duration-200 text-base tracking-wide"
                             (click)="addFaqItem()"
                         >
@@ -315,112 +417,113 @@
                     give them permissions to edit the project.
                 </p>
 
-                <div class="space-y-6">
-                    <div class="space-y-3">
-                        @if (members.pubkeys.length > 0) {
-                            <div class="space-y-4">
-                            @for (pubkey of members.pubkeys; track $index; let i = $index) {
-                            <div class=" rounded-lg p-2 md:p-4 border border-secondary-border space-y-4">
-                                <div class="flex items-center gap-3">
-                                    <div class="flex-1">
-                                        <input 
-                                            type="text" 
-                                            [(ngModel)]="members.pubkeys[i]" 
-                                            (ngModelChange)="onMemberKeyChange(i)"
-                                            placeholder="npub..." 
-                                            [class]="'w-full bg-background border focus:border-secondary-border text-text rounded-lg px-4 py-1 transition-all duration-200 ' + 
-                                                    (members.pubkeys[i] && !isValidNpub(members.pubkeys[i]) ? 'border-red-500 focus:border-red-500' : 'border-secondary-border')"
-                                        />
-                                          @if (getNpubError(members.pubkeys[i])) {
-                                            <div class="flex items-center gap-1 text-red-500 text-xs mt-1 font-medium">
-                                              <i class="fas fa-exclamation-circle"></i>
-                                              {{ getNpubError(members.pubkeys[i]) }}
-                                            </div>
-                                        }
-                                    </div>
-                                    <button 
-                                        (click)="removeMember(i)"
-                                        class="size-11 p-0 rounded-lg hover:bg-accent/20 text-text-secondary flex items-center justify-center transition-all duration-200 border border-border/40 dark:border-border"
-                                    >
-                                        <i class="fas fa-times"></i>
-                                    </button>
-                                </div>
-
-                                @if (memberProfiles[pubkey]) {
-                                <div class="bg-background rounded-xl p-4 sm:p-6 border border-secondary-border shadow-lg overflow-hidden">
-                                    <div class="flex flex-col space-y-4">
-                                        <div class="flex flex-col sm:flex-row sm:items-start space-y-4 sm:space-y-0 sm:space-x-4 lg:space-x-6">
-                                            <div class="flex justify-center sm:justify-start flex-shrink-0">
-                                                <img *ngIf="memberProfiles[pubkey].picture" 
-                                                    [src]="memberProfiles[pubkey].picture"
-                                                    class="w-12 h-12 sm:w-16 sm:h-16 rounded-full object-cover border-2 border-secondary-border shadow-lg" 
-                                                    alt="Profile picture" />
-                                                <div *ngIf="!memberProfiles[pubkey].picture"
-                                                    class="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-gradient-to-br from-accent to-accent-dark flex items-center justify-center border-2 border-secondary-border shadow-lg">
-                                                    <i class="fas fa-user text-white text-sm sm:text-xl"></i>
-                                                </div>
-                                            </div>
-                                            
-                                            <div class="flex-1 min-w-0 text-center sm:text-left">
-                                                <div class="text-text font-semibold text-base sm:text-lg mb-1 truncate">
-                                                    {{ memberProfiles[pubkey].displayName || memberProfiles[pubkey].name || 'Unknown User' }}
-                                                </div>
-                                                <div class="text-accent text-xs sm:text-sm font-medium mb-2 truncate" *ngIf="memberProfiles[pubkey].nip05">
-                                                  <i class="fas fa-check-circle mr-1"></i>
-                                                  {{ memberProfiles[pubkey].nip05 }}
-                                                </div>
-                                                <div class="text-text-secondary text-xs sm:text-sm leading-relaxed line-clamp-3" *ngIf="memberProfiles[pubkey].about">
-                                                    {{ memberProfiles[pubkey].about }}
-                                                </div>
-                                                <div class="text-text-secondary/60 text-xs sm:text-sm italic" *ngIf="!memberProfiles[pubkey].about">
-                                                    No bio available
-                                                </div>
-                                            </div>
-                                        </div>
-                                        
-                                        <div class="flex justify-center sm:justify-end pt-2">
-                                            <button 
-                                                class="bg-gradient-to-r from-accent to-accent-dark hover:from-accent-dark hover:to-accent text-white rounded-lg px-4 sm:px-6 py-2 sm:py-3 transition-all duration-300 text-xs sm:text-sm font-medium shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center" 
-                                                [disabled]="memberBadges[memberProfiles[pubkey].pubkey] || issuingBadge[memberProfiles[pubkey].pubkey]"
-                                                (click)="issueBadge(memberProfiles[pubkey].pubkey)"
-                                            >
-                                                <i class="fas fa-award mr-1 sm:mr-2 text-xs sm:text-sm"></i>
-                                                <span class="truncate">
-                                                {{ issuingBadge[memberProfiles[pubkey].pubkey] ? 'Issuing...' : 
-                                                   memberBadges[memberProfiles[pubkey].pubkey] ? 'Badge Issued' : 'Issue Badge' }}
-                                                </span>
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                                }
-                            </div>
-                      }
-                        </div>
-                      } @else {
-                            <div class="p-8 text-center border border-dashed border-black dark:border-secondary-border rounded-xl bg-surface-card">
-                                <i class="fas fa-users text-accent/40 text-4xl mb-3"></i>
-                                <p class="text-text-secondary">
-                                    No team members added yet
-                                </p>
-                                <p class="text-text-secondary/40 text-sm mt-1">
-                                    Add team members to display on your project page
-                                </p>
-                            </div>
-                      }
+        <div class="space-y-6">
+          <div class="space-y-3">
+            @if (members.pubkeys.length > 0) {
+              <div class="space-y-4">
+                @for (pubkey of members.pubkeys; track $index; let i = $index) {
+                  <div class="rounded-lg p-2 md:p-4 border border-secondary-border space-y-4">
+                    <div class="flex items-center gap-3">
+                      <div class="flex-1">
+                        <input
+                          type="text"
+                          [(ngModel)]="members.pubkeys[i]"
+                          (ngModelChange)="onMemberKeyChange(i)"
+                          placeholder="npub..."
+                          [class]="'w-full bg-background border focus:border-secondary-border text-text rounded-lg px-4 py-1 transition-all duration-200 ' +
+                            (members.pubkeys[i] && !isValidNpub(members.pubkeys[i]) ? 'border-red-500 focus:border-red-500' : 'border-secondary-border')"
+                        />
+                        @if (getNpubError(members.pubkeys[i])) {
+                          <div class="flex items-center gap-1 text-red-500 text-xs mt-1 font-medium">
+                            <i class="fas fa-exclamation-circle"></i>
+                            {{ getNpubError(members.pubkeys[i]) }}
+                          </div>
+                        }
+                      </div>
+                      <button
+                        (click)="removeMember(i)"
+                        title="Remove member"
+                        class="size-11 p-0 rounded-lg hover:bg-accent/20 text-text-secondary flex items-center justify-center transition-all duration-200 border border-border/40 dark:border-border"
+                      >
+                        <i class="fas fa-times"></i>
+                      </button>
                     </div>
 
-                    <button 
-                        (click)="addMember()" 
-                        [disabled]="!canAddTeamMember()"
-                        class="w-full bg-accent hover:bg-accent-dark disabled:bg-accent/50 disabled:cursor-not-allowed text-white rounded-lg px-4 py-3 transition-all duration-200 flex items-center justify-center"
-                    >
-                        <i class="fas fa-user-plus mr-2"></i>
-                        Add Team Member
-                    </button>
-                </div>
-            </div>
+                    @if (memberProfiles[pubkey]) {
+                      <div class="bg-background rounded-xl p-4 sm:p-6 border border-secondary-border shadow-lg overflow-hidden">
+                        <div class="flex flex-col space-y-4">
+                          <div class="flex flex-col sm:flex-row sm:items-start space-y-4 sm:space-y-0 sm:space-x-4 lg:space-x-6">
+                            <div class="flex justify-center sm:justify-start flex-shrink-0">
+                              <img *ngIf="memberProfiles[pubkey].picture"
+                                [src]="memberProfiles[pubkey].picture"
+                                class="w-12 h-12 sm:w-16 sm:h-16 rounded-full object-cover border-2 border-secondary-border shadow-lg"
+                                alt="Profile picture" />
+                              <div *ngIf="!memberProfiles[pubkey].picture"
+                                class="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-gradient-to-br from-accent to-accent-dark flex items-center justify-center border-2 border-secondary-border shadow-lg">
+                                <i class="fas fa-user text-white text-sm sm:text-xl"></i>
+                              </div>
+                            </div>
+
+                            <div class="flex-1 min-w-0 text-center sm:text-left">
+                              <div class="text-text font-semibold text-base sm:text-lg mb-1 truncate">
+                                {{ memberProfiles[pubkey].displayName || memberProfiles[pubkey].name || 'Unknown User' }}
+                              </div>
+                              <div class="text-accent text-xs sm:text-sm font-medium mb-2 truncate" *ngIf="memberProfiles[pubkey].nip05">
+                                <i class="fas fa-check-circle mr-1"></i>
+                                {{ memberProfiles[pubkey].nip05 }}
+                              </div>
+                              <div class="text-text-secondary text-xs sm:text-sm leading-relaxed line-clamp-3" *ngIf="memberProfiles[pubkey].about">
+                                {{ memberProfiles[pubkey].about }}
+                              </div>
+                              <div class="text-text-secondary/60 text-xs sm:text-sm italic" *ngIf="!memberProfiles[pubkey].about">
+                                No bio available
+                              </div>
+                            </div>
+                          </div>
+
+                          <div class="flex justify-center sm:justify-end pt-2">
+                            <button
+                              class="bg-gradient-to-r from-accent to-accent-dark hover:from-accent-dark hover:to-accent text-white rounded-lg px-4 sm:px-6 py-2 sm:py-3 transition-all duration-300 text-xs sm:text-sm font-medium shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                              [disabled]="memberBadges[memberProfiles[pubkey].pubkey] || issuingBadge[memberProfiles[pubkey].pubkey]"
+                              (click)="issueBadge(memberProfiles[pubkey].pubkey)"
+                            >
+                              <i class="fas fa-award mr-1 sm:mr-2 text-xs sm:text-sm"></i>
+                              <span class="truncate">
+                                {{ issuingBadge[memberProfiles[pubkey].pubkey] ? 'Issuing...' :
+                                   memberBadges[memberProfiles[pubkey].pubkey] ? 'Badge Issued' : 'Issue Badge' }}
+                              </span>
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
+            } @else {
+              <div class="p-8 text-center border border-dashed border-black dark:border-secondary-border rounded-xl bg-surface-card">
+                <i class="fas fa-users text-accent/40 text-4xl mb-3"></i>
+                <p class="text-text-secondary">
+                  No team members added yet
+                </p>
+                <p class="text-text-secondary/40 text-sm mt-1">
+                  Add team members to display on your project page
+                </p>
+              </div>
+            }
+          </div>
+
+          <button
+            (click)="addMember()"
+            [disabled]="!canAddTeamMember()"
+            class="w-full bg-accent hover:bg-accent-dark disabled:bg-accent/50 disabled:cursor-not-allowed text-white rounded-lg px-4 py-3 transition-all duration-200 flex items-center justify-center"
+          >
+            <i class="fas fa-user-plus mr-2"></i>
+            Add Team Member
+          </button>
         </div>
+      </div>
+    </div>
 
         <div *ngSwitchCase="'links'" class="bg-surface-card rounded-lg md:rounded-xl p-4 md:p-8">
           <div class="bg-secondary-card border border-secondary-border rounded-2xl shadow-2xl">
@@ -465,8 +568,8 @@
                         </label>
                         <select
                           [(ngModel)]="link.platform"
-                          class="w-full h-11 sm:h-12 bg-secondary-card border dark:border-secondary-border focus:border-accent focus:ring-2 focus:ring-accent/20 text-text rounded-xl px-3 sm:px-4 transition-all duration-200 appearance-none text-sm sm:text-base"
-                          style="padding-right: 2.5rem;"
+                          class="w-full h-11 sm:h-12 bg-secondary-card border dark:border-secondary-border focus:border-accent focus:ring-2 focus:ring-accent/20 text-text rounded-xl px-3 sm:px-4 pr-10 transition-all duration-200 appearance-none text-sm sm:text-base"
+                          title="Platform"
                           [id]="'platform-' + i"
                           autocomplete="off"
                         >
@@ -734,9 +837,11 @@
                         <button
                         (click)="removeRelay($index)"
                         [disabled]="relays.length === 1"
+                        title="Remove relay"
+                        aria-label="Remove relay"
                         class="h-8 w-8 flex-shrink-0 p-0 ml-2 rounded-full hover:bg-accent/20 text-text-secondary flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                        <i class="fas fa-times h-4 w-4"></i>
+                        <i class="fas fa-times h-4 w-4" aria-hidden="true"></i>
                         </button>
                     </div>
                     }
