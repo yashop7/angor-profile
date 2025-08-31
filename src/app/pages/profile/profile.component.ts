@@ -153,106 +153,71 @@ export class ProfileComponent implements OnInit {
     window.addEventListener('resize', () => this.checkScreenSize());
   }
 
-  isValidRelayUrl(): boolean {
-    if (!this.newRelayUrl || this.newRelayUrl.trim() === '') return true;
-    
-    const url = this.newRelayUrl.trim();
+  private validateUrl(url: string, allowedProtocols: string[]): { isValid: boolean; error: string } {
+    if (!url || url.trim() === '') {
+      return { isValid: true, error: '' };
+    }
 
-    if (!url.startsWith('wss://')) {
-      return false;
-    }
+    const trimurl = url.trim();
     
-    try {
-      new URL(url);
-      return true;
-    } catch {
-      return false;
+    const hasValidProtocol = allowedProtocols.some(protocol => trimurl.startsWith(protocol));
+    if (!hasValidProtocol) {
+      const protocolList = allowedProtocols.join(' or ');
+      return { 
+        isValid: false, 
+        error: `URL must start with ${protocolList}` 
+      };
     }
+
+    try {
+      new URL(trimurl);
+      return { isValid: true, error: '' };
+    } catch {
+      return { 
+        isValid: false, 
+        error: 'Please enter a valid URL format' 
+      };
+    }
+  }
+
+  isValidRelayUrl(): boolean {
+    const result = this.validateUrl(this.newRelayUrl, ['wss://']);
+    return result.isValid;
   }
 
   getRelayUrlError(): string {
-    if (!this.newRelayUrl || this.newRelayUrl.trim() === '') return '';
-    
-    const url = this.newRelayUrl.trim();
-    
-    if (!url.startsWith('wss://')) {
-      return 'Relay URL must start with wss://';
-    }
-    
-    try {
-      new URL(url);
-      return '';
-    } catch {
-      return 'Please enter a valid URL format';
-    }
+    const result = this.validateUrl(this.newRelayUrl, ['wss://']);
+    return result.error;
   }
 
   isValidMediaUrl(): boolean {
-    if (!this.newMediaUrl || this.newMediaUrl.trim() === '') return true;
-    
-    const url = this.newMediaUrl.trim();
-    
-    if (!url.startsWith('https://') && !url.startsWith('http://')) {
-      return false;
-    }
-    
-    try {
-      new URL(url);
-      return true;
-    } catch {
-      return false;
-    }
+    const result = this.validateUrl(this.newMediaUrl, ['https://', 'http://']);
+    return result.isValid;
   }
 
   getMediaUrlError(): string {
-    if (!this.newMediaUrl || this.newMediaUrl.trim() === '') return '';
-    
-    const url = this.newMediaUrl.trim();
-    
-    if (!url.startsWith('https://') && !url.startsWith('http://')) {
-      return 'Media URL must start with https:// or http://';
-    }
-    
-    try {
-      new URL(url);
-      return '';
-    } catch {
-      return 'Please enter a valid URL format';
-    }
+    const result = this.validateUrl(this.newMediaUrl, ['https://', 'http://']);
+    return result.error;
   }
 
   isValidProofUrl(proofUrl: string): boolean {
-    if (!proofUrl || proofUrl.trim() === '') return true;
-    
-    const url = proofUrl.trim();
-    
-    if (!url.startsWith('https://')) {
-      return false;
-    }
-    
-    try {
-      new URL(url);
-      return true;
-    } catch {
-      return false;
-    }
+    const result = this.validateUrl(proofUrl, ['https://']);
+    return result.isValid;
   }
 
   getProofUrlError(proofUrl: string): string {
-    if (!proofUrl || proofUrl.trim() === '') return '';
-    
-    const url = proofUrl.trim();
-    
-    if (!url.startsWith('https://')) {
-      return 'Proof URL must start with https://';
-    }
-    
-    try {
-      new URL(url);
-      return '';
-    } catch {
-      return 'Please enter a valid URL format';
-    }
+    const result = this.validateUrl(proofUrl, ['https://']);
+    return result.error;
+  }
+
+  isValidWebsiteUrl(): boolean {
+    const result = this.validateUrl(this.profile.website, ['https://', 'http://']);
+    return result.isValid;
+  }
+
+  getWebsiteUrlError(): string {
+    const result = this.validateUrl(this.profile.website, ['https://', 'http://']);
+    return result.error;
   }
 
   areAllProofUrlsValid(): boolean {
@@ -767,5 +732,78 @@ export class ProfileComponent implements OnInit {
         left: scrollAmount,
       });
     }
+  }
+
+  isValidNpub(npubKey: string): boolean {
+    if (!npubKey || npubKey.trim() === '') return true;
+    const input = npubKey.toLowerCase();
+    if (input.startsWith('npub')) {
+      try {
+        nip19.decode(npubKey);
+        return true;
+      } catch {
+        return false;
+      }
+    }
+    return false;
+  }
+
+  getNpubError(npubKey: string): string {
+    if (!npubKey || npubKey.trim() === '') return '';
+    
+    const input = npubKey.toLowerCase();
+    if (!input.startsWith('npub')) {
+      return 'Must be a valid npub (starts with npub)';
+    }
+    
+    try {
+      nip19.decode(npubKey);
+      return '';
+    } catch {
+      return 'Invalid npub format';
+    }
+  }
+
+  canAddTeamMember(): boolean {
+    if (this.members.pubkeys.length === 0) return true;
+    const lastMemberKey = this.members.pubkeys[this.members.pubkeys.length - 1];
+    if (!lastMemberKey || lastMemberKey.trim() === '') return true;
+    return this.isValidNpub(lastMemberKey);
+  }
+
+  isValidLightningAddress(): boolean {
+    if (!this.profile.lud16 || this.profile.lud16.trim() === '') return true;
+    
+    const address = this.profile.lud16.trim();
+    
+    if (address.toLowerCase().startsWith('lnurl1')) {
+      return address === address.toLowerCase() && address.length > 20 && address.length < 300;
+    }
+    
+    const lightningAddressRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    return lightningAddressRegex.test(address);
+  }
+
+  getLightningAddressError(): string {
+    if (!this.profile.lud16 || this.profile.lud16.trim() === '') return '';
+    
+    const address = this.profile.lud16.trim();
+    
+    if (address.toLowerCase().startsWith('lnurl1')) {
+      if (address !== address.toLowerCase()) {
+        return 'LNURL must be lowercase';
+      }
+      if (address.length <= 20 || address.length >= 300) {
+        return 'Invalid LNURL length';
+      }
+      return '';
+    }
+    
+    const lightningAddressRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    if (!lightningAddressRegex.test(address)) {
+      return 'Please enter a valid lightning address (user@domain.com) or LNURL (lnurl1...)';
+    }
+    
+    return '';
   }
 }

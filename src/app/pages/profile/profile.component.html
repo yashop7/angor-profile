@@ -155,8 +155,15 @@
                                 Lightning Address
                             </label>
                             <input id="lud16" type="text" [(ngModel)]="profile.lud16"
-                                class="input border-secondary-border bg-transparent focus:border-secondary-border h-12 text-text rounded-lg transition-all duration-200 w-full px-4"
+                                [class]="'input border bg-transparent focus:border-secondary-border h-12 text-text rounded-lg transition-all duration-200 w-full px-4 ' + 
+                                        (profile.lud16 && !isValidLightningAddress() ? 'border-red-500 focus:border-red-500' : 'border-secondary-border')"
                                 placeholder="your@lightning.address" />
+                            @if (getLightningAddressError()) {
+                              <div class="flex items-center gap-1 text-red-500 text-xs mt-1 font-medium">
+                                <i class="fas fa-exclamation-circle"></i>
+                                {{ getLightningAddressError() }}
+                              </div>
+                            }
                         </div>
 
                         <div class="space-y-3">
@@ -165,8 +172,15 @@
                                 Website
                             </label>
                             <input id="website" type="url" [(ngModel)]="profile.website"
-                                class="input border-secondary-border bg-transparent focus:border-secondary-border h-12 text-text rounded-lg transition-all duration-200 w-full px-4"
+                                [class]="'input border bg-transparent focus:border-secondary-border h-12 text-text rounded-lg transition-all duration-200 w-full px-4 ' + 
+                                        (profile.website && !isValidWebsiteUrl() ? 'border-red-500 focus:border-red-500' : 'border-secondary-border')"
                                 placeholder="https://your-website.com" />
+                            @if (getWebsiteUrlError()) {
+                              <div class="flex items-center gap-1 text-red-500 text-xs mt-1 font-medium">
+                                <i class="fas fa-exclamation-circle"></i>
+                                {{ getWebsiteUrlError() }}
+                              </div>
+                            }
                         </div>
                     </div>
                 </div>
@@ -314,8 +328,15 @@
                                             [(ngModel)]="members.pubkeys[i]" 
                                             (ngModelChange)="onMemberKeyChange(i)"
                                             placeholder="npub..." 
-                                            class="w-full bg-background border-secondary-border focus:border-secondary-border text-text rounded-lg px-4 py-1 transition-all duration-200" 
+                                            [class]="'w-full bg-background border focus:border-secondary-border text-text rounded-lg px-4 py-1 transition-all duration-200 ' + 
+                                                    (members.pubkeys[i] && !isValidNpub(members.pubkeys[i]) ? 'border-red-500 focus:border-red-500' : 'border-secondary-border')"
                                         />
+                                          @if (getNpubError(members.pubkeys[i])) {
+                                            <div class="flex items-center gap-1 text-red-500 text-xs mt-1 font-medium">
+                                              <i class="fas fa-exclamation-circle"></i>
+                                              {{ getNpubError(members.pubkeys[i]) }}
+                                            </div>
+                                        }
                                     </div>
                                     <button 
                                         (click)="removeMember(i)"
@@ -391,7 +412,8 @@
 
                     <button 
                         (click)="addMember()" 
-                        class="w-full bg-accent hover:bg-accent-dark text-white rounded-lg px-4 py-3 transition-all duration-200 flex items-center justify-center"
+                        [disabled]="!canAddTeamMember()"
+                        class="w-full bg-accent hover:bg-accent-dark disabled:bg-accent/50 disabled:cursor-not-allowed text-white rounded-lg px-4 py-3 transition-all duration-200 flex items-center justify-center"
                     >
                         <i class="fas fa-user-plus mr-2"></i>
                         Add Team Member
